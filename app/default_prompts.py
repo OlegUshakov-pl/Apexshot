@@ -14,7 +14,11 @@ BASE_SYSTEM_PROMPT = """Ты создаешь AI-слепок — маленьк
 6. summary должен быть кратким и нейтральным.
 7. confidence — от 0.0 до 1.0.
 8. Если текст рекламный, неполный или шумный, снижай confidence.
-9. search_text — строка для поиска, состоящая из title, summary, tags, topics, technologies и ключевых claims."""
+9. search_text — строка для поиска, состоящая из title, summary, tags, topics, technologies и ключевых claims.
+10. Ответ должен помещаться в лимит токенов. Соблюдай ограничения объёма:
+    не больше 8 facts, 4 sections, 6 highlights, 10 tags, 8 questions;
+    claim — до 150 символов, quote — до 300 символов, summary — до 600 символов,
+    текст секции — до 400 символов. Не пиши ничего лишнего."""
 
 DEFAULT_USER_PROMPT = """Сформируй AI-слепок.
 

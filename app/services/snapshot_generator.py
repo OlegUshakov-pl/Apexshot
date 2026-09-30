@@ -25,7 +25,11 @@ class GenerationError(Exception):
 
 
 MAX_ATTEMPTS = 3
-STRICT_JSON_PREFIX = "Верни только JSON. Не добавляй markdown. Не добавляй пояснения.\n\n"
+STRICT_JSON_PREFIX = (
+    "Верни только JSON. Не добавляй markdown. Не добавляй пояснения.\n"
+    "Если прошлый ответ был длинным и оборван — сократи его: максимум 8 фактов, "
+    "4 секции, 6 цитат, 10 тегов, 8 вопросов, короткие формулировки.\n\n"
+)
 _PLACEHOLDER = re.compile(r"\{([a-zA-Z_]+)\}")
 
 
@@ -55,14 +59,21 @@ def parse_json_response(text: str) -> dict[str, Any]:
     start, end = s.find("{"), s.rfind("}")
     if 0 <= start < end:
         candidates.append(s[start : end + 1])
+    errors: list[str] = []
     for candidate in candidates:
         for attempt in (candidate, _strip_trailing_commas(candidate)):
             try:
                 data = json.loads(attempt)
-            except (json.JSONDecodeError, ValueError):
+            except (json.JSONDecodeError, ValueError) as exc:
+                errors.append(str(exc))
                 continue
             if isinstance(data, dict):
                 return data
+    if any("Unterminated string" in e for e in errors):
+        raise JsonParseError(
+            "Ответ модели обрезан — не хватило max_tokens. "
+            "Увеличьте max_tokens в настройках или сократите исходный текст."
+        )
     raise JsonParseError("Модель вернула невалидный JSON")
 
 
