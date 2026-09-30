@@ -11,6 +11,10 @@ JSON-«слепки» с помощью локальных LLM (**Ollama** ил�
 
 ## Запуск
 
+**Windows:** двойной клик по `start.bat` (создаст `.venv`, поставит зависимости и поднимет сервер).
+
+Ручной запуск:
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
