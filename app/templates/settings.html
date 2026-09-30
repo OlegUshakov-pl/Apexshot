@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% block title %}Настройки · AI-слепки{% endblock %}
+
+{% block content %}
+<div x-data="settingsPage()" x-init="load()" class="max-w-4xl mx-auto space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Настройки</h1>
+    <p class="text-sm text-gray-500 mt-1">Провайдер LLM, параметры генерации и активные шаблоны по типам.</p>
+  </div>
+
+  <div x-show="message" x-cloak
+       class="rounded-lg text-sm px-4 py-3 border"
+       :class="ok ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'"
+       x-text="message"></div>
+
+  <!-- PROVIDER -->
+  <section class="bg-white shadow rounded-xl border border-gray-100 p-6 space-y-4">
+    <h2 class="font-semibold text-gray-900">Провайдер</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Тип провайдера</label>
+        <select x-model="form.provider" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+          <option value="ollama">Ollama</option>
+          <option value="lmstudio">LM Studio</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Base URL</label>
+        <input x-model="form.base_url" @change="applyDefaults()"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+               placeholder="http://localhost:11434">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">API key (не обязателен)</label>
+        <input x-model="form.api_key" type="password" autocomplete="off"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500" placeholder="">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Модель</label>
+        <div class="flex gap-2">
+          <input x-model="form.model" list="model-list"
+                 class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500" placeholder="llama3.1:8b">
+          <datalist id="model-list">
+            <template x-for="m in availableModels" :key="m"><option :value="m"></option></template>
+          </datalist>
+          <button @click="fetchModels()" class="px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm hover:bg-gray-50">Список</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <button @click="testConnection()" :disabled="testing"
+              class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+        <span x-show="!testing">Тест соединения</span><span x-show="testing">Проверка…</span>
+      </button>
+      <div class="text-sm" x-show="test">
+        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium mr-2"
+              :class="test.reachable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+              x-text="test.reachable ? 'reachable' : 'unreachable'"></span>
+        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium mr-2"
+              :class="test.model_available ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'"
+              x-text="test.model_available ? 'model available' : 'model missing'"></span>
+        <span class="text-xs text-gray-500" x-text="test.models ? `моделей: ${test.models.length}` : ''"></span>
+      </div>
+      <span class="text-xs text-red-500" x-show="test && test.error" x-text="test.error"></span>
+    </div>
+  </section>
+
+  <!-- GENERATION -->
+  <section class="bg-white shadow rounded-xl border border-gray-100 p-6 space-y-4">
+    <h2 class="font-semibold text-gray-900">Параметры генерации</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">temperature</label>
+        <input type="number" step="0.05" min="0" max="2" x-model.number="form.temperature" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">top_p</label>
+        <input type="number" step="0.05" min="0" max="1" x-model.number="form.top_p" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">seed</label>
+        <input type="number" x-model.number="form.seed" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">max_tokens</label>
+        <input type="number" min="100" x-model.number="form.max_tokens" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">timeout, сек</label>
+        <input type="number" min="10" x-model.number="form.timeout_seconds" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">max_input_chars</label>
+        <input type="number" min="500" step="500" x-model.number="form.max_input_chars" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">max_chunk_chars</label>
+        <input type="number" min="200" step="100" x-model.number="form.max_chunk_chars" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="flex items-end pb-2">
+        <label class="flex items-center gap-2 text-sm">
+          <input type="checkbox" x-model="form.json_mode" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+          JSON mode
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEFAULT TEMPLATES -->
+  <section class="bg-white shadow rounded-xl border border-gray-100 p-6 space-y-4">
+    <h2 class="font-semibold text-gray-900">Активные шаблоны по типам</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <template x-for="type in types" :key="type">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" x-text="type"></label>
+          <template x-if="templatesFor(type).length">
+            <select x-model="form.default_templates[type]" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+              <template x-for="t in templatesFor(type)" :key="t.id">
+                <option :value="t.id" x-text="t.name"></option>
+              </template>
+            </select>
+          </template>
+          <template x-if="!templatesFor(type).length">
+            <div class="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm px-3 py-2 flex items-center justify-between gap-2">
+              <span>Нет включённых шаблонов</span>
+              <a href="/templates" class="text-xs underline whitespace-nowrap">Перейти к шаблонам</a>
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+  </section>
+
+  <div class="flex justify-end">
+    <button @click="save()" :disabled="saving"
+            class="px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+      <span x-show="!saving">Сохранить настройки</span><span x-show="saving">Сохранение…</span>
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function settingsPage() {
+  return {
+    form: {provider:'ollama', base_url:'', api_key:'', model:'', temperature:0.1, top_p:0.9,
+           seed:42, max_tokens:2000, timeout_seconds:300, json_mode:true,
+           max_input_chars:12000, max_chunk_chars:6000, default_templates:{}},
+    types: ['article','documentation','news','forum','notes','general'],
+    templates: [],
+    availableModels: [],
+    test: null,
+    testing: false,
+    saving: false,
+    message: '',
+    ok: true,
+    async load() {
+      try {
+        const [s, t] = await Promise.all([
+          fetch('/api/settings').then(r => r.json()),
+          fetch('/api/templates').then(r => r.json())
+        ]);
+        this.form = {...this.form, ...s};
+        this.form.default_templates = s.default_templates || {};
+        this.templates = t;
+      } catch (e) {
+        this.ok = false; this.message = 'Не удалось загрузить настройки: ' + e;
+      }
+    },
+    templatesFor(type) { return this.templates.filter(t => t.snapshot_type === type && t.enabled); },
+    applyDefaults() {
+      if (!this.form.base_url) this.form.base_url = this.form.provider === 'ollama' ? 'http://localhost:11434' : 'http://localhost:1234/v1';
+    },
+    async fetchModels() {
+      try {
+        const res = await fetch('/api/models');
+        const data = await res.json();
+        if (res.ok) this.availableModels = data.models || [];
+        else this.ok = false, this.message = (data.detail && data.detail.detail) || 'Не удалось получить список моделей';
+      } catch (e) { this.ok = false; this.message = 'Ошибка: ' + e; }
+    },
+    async testConnection() {
+      this.testing = true; this.test = null;
+      try {
+        const res = await fetch('/api/providers/test', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({provider:this.form.provider, base_url:this.form.base_url, api_key:this.form.api_key, model:this.form.model})
+        });
+        this.test = await res.json();
+        if (this.test.models) this.availableModels = this.test.models;
+      } catch (e) { this.test = {reachable:false, model_available:false, models:[], error:String(e)}; }
+      this.testing = false;
+    },
+    async save() {
+      this.saving = true; this.message = '';
+      try {
+        const payload = {...this.form};
+        payload.default_templates = Object.fromEntries(
+          Object.entries(this.form.default_templates || {}).map(([k, v]) => [k, v ? Number(v) : null])
+        );
+        const res = await fetch('/api/settings', {
+          method:'PUT', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          this.ok = true; this.message = 'Настройки сохранены';
+          this.form = {...this.form, ...data};
+          this.form.default_templates = data.default_templates || {};
+        } else {
+          this.ok = false;
+          this.message = (data.detail && data.detail.detail) || data.detail || 'Ошибка сохранения';
+        }
+      } catch (e) { this.ok = false; this.message = 'Ошибка запроса: ' + e; }
+      this.saving = false;
+      setTimeout(() => this.message = '', 4000);
+    }
+  }
+}
+</script>
+{% endblock %}

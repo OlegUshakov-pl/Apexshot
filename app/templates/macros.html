@@ -1,0 +1,36 @@
+{% macro type_badge(t) %}
+<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium
+  {% if t == 'article' %}bg-blue-100 text-blue-800
+  {% elif t == 'documentation' %}bg-indigo-100 text-indigo-800
+  {% elif t == 'news' %}bg-amber-100 text-amber-800
+  {% elif t == 'forum' %}bg-purple-100 text-purple-800
+  {% elif t == 'notes' %}bg-emerald-100 text-emerald-800
+  {% else %}bg-gray-100 text-gray-800{% endif %}">{{ t }}</span>
+{% endmacro %}
+
+{% macro confidence_badge(value) %}
+{% set v = value | float %}
+<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium
+  {% if v >= 0.75 %}bg-green-100 text-green-800
+  {% elif v >= 0.5 %}bg-amber-100 text-amber-800
+  {% else %}bg-red-100 text-red-800{% endif %}">{{ '%.2f' | format(v) }}</span>
+{% endmacro %}
+
+{% macro confidence_bar(value) %}
+{% set v = (value | float) * 100 %}
+<div class="flex items-center gap-2">
+  <div class="h-2 w-24 bg-gray-200 rounded-full overflow-hidden">
+    <div class="h-2 rounded-full {% if v >= 75 %}bg-green-500{% elif v >= 50 %}bg-amber-500{% else %}bg-red-400{% endif %}"
+         style="width: {{ '%.0f' | format(v) }}%"></div>
+  </div>
+  <span class="text-xs text-gray-500">{{ '%.2f' | format(value | float) }}</span>
+</div>
+{% endmacro %}
+
+{% macro verified_badge(ok) %}
+{% if ok %}
+<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-800">verified</span>
+{% else %}
+<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">unverified</span>
+{% endif %}
+{% endmacro %}

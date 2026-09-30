@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% block title %}Шаблоны · AI-слепки{% endblock %}
+
+{% block content %}
+<div x-data="templatesPage()" x-init="load()" class="space-y-6">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Шаблоны слепков</h1>
+      <p class="text-sm text-gray-500 mt-1">Каждый шаблон задаёт system/user промпты и JSON-схему для своего типа слепка.</p>
+    </div>
+    <button @click="openCreate()"
+            class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Новый шаблон</button>
+  </div>
+
+  <div x-show="error" x-cloak class="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3" x-text="error"></div>
+  <div x-show="notice" x-cloak class="rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3" x-text="notice"></div>
+
+  <div class="bg-white shadow rounded-xl border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+          <tr>
+            <th class="px-4 py-3">Название</th>
+            <th class="px-4 py-3">Тип</th>
+            <th class="px-4 py-3">Статус</th>
+            <th class="px-4 py-3">По умолчанию</th>
+            <th class="px-4 py-3">Обновлён</th>
+            <th class="px-4 py-3 text-right">Действия</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <template x-for="t in items" :key="t.id">
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-3">
+                <div class="font-medium text-gray-900" x-text="t.name"></div>
+                <div class="text-xs text-gray-500" x-text="t.description"></div>
+              </td>
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800" x-text="t.snapshot_type"></span>
+              </td>
+              <td class="px-4 py-3">
+                <button @click="toggle(t)" class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                        :class="t.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'"
+                        x-text="t.enabled ? 'enabled' : 'disabled'"></button>
+              </td>
+              <td class="px-4 py-3">
+                <span x-show="isActive(t)" class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-indigo-100 text-indigo-800">default</span>
+                <button x-show="!isActive(t) && t.enabled" @click="setDefault(t)"
+                        class="text-xs text-blue-600 hover:underline">сделать default</button>
+              </td>
+              <td class="px-4 py-3 text-xs text-gray-500" x-text="t.updated_at"></td>
+              <td class="px-4 py-3">
+                <div class="flex justify-end gap-2 text-xs">
+                  <button @click="openEdit(t)" class="px-2.5 py-1.5 rounded-md border border-gray-300 hover:bg-white">Edit</button>
+                  <button @click="openTest(t)" class="px-2.5 py-1.5 rounded-md border border-gray-300 hover:bg-white">Test</button>
+                  <button @click="remove(t)" class="px-2.5 py-1.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50">Delete</button>
+                </div>
+              </td>
+            </tr>
+          </template>
+          <tr x-show="items.length === 0 && !loading">
+            <td colspan="6" class="px-4 py-8 text-center text-gray-400 text-sm">Шаблонов нет</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div x-show="editor.open" x-cloak class="fixed inset-0 z-50 flex items-start justify-center bg-gray-900/40 p-4 overflow-y-auto" @keydown.escape.window="editor.open=false">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-3xl my-8 border border-gray-200">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-900" x-text="editor.id ? 'Редактирование шаблона' : 'Новый шаблон'"></h2>
+        <button @click="editor.open=false" class="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+      </div>
+      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div x-show="editorWarning()" x-cloak class="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3" x-text="editorWarning()"></div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Название</label>
+            <input x-model="editor.name" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Тип слепка</label>
+            <select x-model="editor.snapshot_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+              <option value="article">article</option><option value="documentation">documentation</option>
+              <option value="news">news</option><option value="forum">forum</option>
+              <option value="notes">notes</option><option value="general">general</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Описание</label>
+          <input x-model="editor.description" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">System prompt</label>
+          <textarea x-model="editor.system_prompt" rows="6" class="w-full border border-gray-300 rounded-lg px-3 py-2 font-mono text-xs focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">User prompt</label>
+          <textarea x-model="editor.user_prompt" rows="8" class="w-full border border-gray-300 rounded-lg px-3 py-2 font-mono text-xs focus:ring-2 focus:ring-blue-500"></textarea>
+          <p class="text-xs text-gray-500 mt-1">Плейсхолдеры: {type} {directory} {files} {text} {schema} {chunk_index} {chunk_count} {partials}</p>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Chunk prompt</label>
+            <textarea x-model="editor.chunk_user_prompt" rows="6" class="w-full border border-gray-300 rounded-lg px-3 py-2 font-mono text-xs focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Merge prompt</label>
+            <textarea x-model="editor.merge_user_prompt" rows="6" class="w-full border border-gray-300 rounded-lg px-3 py-2 font-mono text-xs focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">JSON-схема (schema_json)</label>
+          <textarea x-model="editor.schema_json" rows="8" class="w-full border border-gray-300 rounded-lg px-3 py-2 font-mono text-xs focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+        <div class="flex flex-wrap gap-6">
+          <label class="flex items-center gap-2 text-sm"><input type="checkbox" x-model="editor.enabled" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> enabled</label>
+          <label class="flex items-center gap-2 text-sm"><input type="checkbox" x-model="editor.is_default" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> is_default</label>
+        </div>
+        <div x-show="editor.error" x-cloak class="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3" x-text="editor.error"></div>
+      </div>
+      <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+        <button @click="editor.open=false" class="px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Отмена</button>
+        <button @click="save()" :disabled="editor.saving" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEST MODAL -->
+  <div x-show="tester.open" x-cloak class="fixed inset-0 z-50 flex items-start justify-center bg-gray-900/40 p-4 overflow-y-auto">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-3xl my-8 border border-gray-200">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-900">Проверка шаблона</h2>
+        <button @click="tester.open=false" class="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+      </div>
+      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Образец текста</label>
+          <textarea x-model="tester.sample_text" rows="5" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                    placeholder="Ollama позволяет запускать локальные LLM прямо на компьютере."></textarea>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Директория</label>
+            <input x-model="tester.directory" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Тип</label>
+            <select x-model="tester.type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+              <option value="article">article</option><option value="documentation">documentation</option>
+              <option value="news">news</option><option value="forum">forum</option>
+              <option value="notes">notes</option><option value="general">general</option>
+            </select>
+          </div>
+        </div>
+        <div x-show="tester.result">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                  :class="tester.result && tester.result.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                  x-text="tester.result && tester.result.success ? 'успешно' : 'ошибка'"></span>
+            <span class="text-xs text-gray-500" x-text="tester.result && tester.result.error ? tester.result.error : ''"></span>
+          </div>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <div class="text-xs font-medium text-gray-500 mb-1">Raw output</div>
+              <pre class="bg-gray-50 border border-gray-100 rounded-lg p-3 text-xs max-h-72 overflow-auto" x-text="tester.result && tester.result.raw_output"></pre>
+            </div>
+            <div>
+              <div class="text-xs font-medium text-gray-500 mb-1">Parsed JSON</div>
+              <pre class="bg-gray-50 border border-gray-100 rounded-lg p-3 text-xs max-h-72 overflow-auto" x-text="tester.result && tester.result.parsed_json ? JSON.stringify(tester.result.parsed_json, null, 2) : '—'"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+        <button @click="tester.open=false" class="px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Закрыть</button>
+        <button @click="runTest()" :disabled="tester.running" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+          <span x-show="!tester.running">Проверить</span><span x-show="tester.running">Вызов модели…</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function templatesPage() {
+  return {
+    items: [],
+    settings: null,
+    loading: true,
+    error: '',
+    notice: '',
+    editor: {open:false, id:null, name:'', description:'', snapshot_type:'general', system_prompt:'', user_prompt:'', chunk_user_prompt:'', merge_user_prompt:'', schema_json:'{}', enabled:true, is_default:false, error:'', saving:false},
+    tester: {open:false, id:null, sample_text:'', directory:'/tmp/test', type:'general', running:false, result:null},
+    async load() {
+      try {
+        const [t, s] = await Promise.all([
+          fetch('/api/templates').then(r => r.json()),
+          fetch('/api/settings').then(r => r.json())
+        ]);
+        this.items = t;
+        this.settings = s;
+      } catch (e) { this.error = 'Не удалось загрузить шаблоны: ' + e; }
+      this.loading = false;
+    },
+    isActive(t) {
+      return this.settings && this.settings.default_templates && this.settings.default_templates[t.snapshot_type] === t.id;
+    },
+    openCreate() {
+      this.editor = {open:true, id:null, name:'', description:'', snapshot_type:'general',
+        system_prompt:'', user_prompt:'', chunk_user_prompt:'', merge_user_prompt:'',
+        schema_json:'{}', enabled:true, is_default:false, error:'', saving:false};
+    },
+    openEdit(t) {
+      this.editor = {...t, open:true, error:'', saving:false};
+    },
+    editorWarning() {
+      if (!this.editor.id || !this.settings || !this.settings.default_templates) return '';
+      const active = this.settings.default_templates[this.editor.snapshot_type];
+      if (active === this.editor.id) return `Этот шаблон используется как активный для типа ${this.editor.snapshot_type}`;
+      return '';
+    },
+    async save() {
+      this.editor.error = '';
+      this.editor.saving = true;
+      const payload = {
+        name: this.editor.name, description: this.editor.description,
+        snapshot_type: this.editor.snapshot_type, system_prompt: this.editor.system_prompt,
+        user_prompt: this.editor.user_prompt, chunk_user_prompt: this.editor.chunk_user_prompt,
+        merge_user_prompt: this.editor.merge_user_prompt, schema_json: this.editor.schema_json,
+        enabled: this.editor.enabled, is_default: this.editor.is_default
+      };
+      try {
+        const url = this.editor.id ? '/api/templates/' + this.editor.id : '/api/templates';
+        const res = await fetch(url, {
+          method: this.editor.id ? 'PUT' : 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          this.editor.error = (data.detail && data.detail.detail) || data.detail || 'Ошибка сохранения';
+        } else {
+          this.editor.open = false;
+          this.notice = 'Шаблон сохранён';
+          setTimeout(() => this.notice = '', 3000);
+          await this.load();
+        }
+      } catch (e) { this.editor.error = 'Ошибка запроса: ' + e; }
+      this.editor.saving = false;
+    },
+    async toggle(t) {
+      const res = await fetch(`/api/templates/${t.id}/enabled?enabled=${!t.enabled}`, {method:'POST'});
+      if (res.ok) await this.load();
+    },
+    async setDefault(t) {
+      const res = await fetch(`/api/templates/${t.id}/default`, {method:'POST'});
+      const data = await res.json();
+      if (res.ok) {
+        this.notice = 'Шаблон назначен по умолчанию';
+        setTimeout(() => this.notice = '', 3000);
+        await this.load();
+      } else {
+        this.error = (data.detail && data.detail.detail) || 'Ошибка';
+      }
+    },
+    async remove(t) {
+      if (!confirm(`Удалить шаблон «${t.name}»?`)) return;
+      const res = await fetch('/api/templates/' + t.id, {method:'DELETE'});
+      const data = await res.json();
+      if (res.ok) {
+        this.notice = 'Шаблон удалён';
+        if (data.warnings && data.warnings.length) this.error = data.warnings.join('; ');
+        setTimeout(() => { this.notice = ''; this.error = ''; }, 4000);
+        await this.load();
+      } else {
+        this.error = (data.detail && data.detail.detail) || 'Ошибка удаления';
+      }
+    },
+    openTest(t) {
+      this.tester = {open:true, id:t.id, sample_text:'Ollama позволяет запускать локальные LLM прямо на компьютере и сохранять приватность данных.',
+        directory:'/tmp/test', type:t.snapshot_type, running:false, result:null};
+    },
+    async runTest() {
+      this.tester.running = true;
+      this.tester.result = null;
+      try {
+        const res = await fetch(`/api/templates/${this.tester.id}/test`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({sample_text: this.tester.sample_text, directory: this.tester.directory, type: this.tester.type})
+        });
+        this.tester.result = await res.json();
+        if (!res.ok) this.tester.result = {success:false, raw_output:'', parsed_json:null, error: this.tester.result.detail};
+      } catch (e) {
+        this.tester.result = {success:false, raw_output:'', parsed_json:null, error: String(e)};
+      }
+      this.tester.running = false;
+    }
+  }
+}
+</script>
+{% endblock %}

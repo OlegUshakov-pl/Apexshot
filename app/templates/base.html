@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}AI-слепки{% endblock %}</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 8px; }
+    ::-webkit-scrollbar-track { background: #f3f4f6; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+    mark { background: #fef08a; padding: 0 2px; border-radius: 3px; }
+    .nav-link { padding: .4rem .75rem; border-radius: .5rem; font-size: .875rem; font-weight: 500; }
+    .nav-link:hover { background: #eff6ff; color: #1d4ed8; }
+    .nav-link.active { background: #dbeafe; color: #1d4ed8; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+      <a href="/" class="flex items-center gap-2 font-semibold text-blue-700 whitespace-nowrap">
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-xs">AI</span>
+        <span>AI-слепки</span>
+      </a>
+      <nav class="flex items-center gap-1 overflow-x-auto">
+        <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">Главная</a>
+        <a href="/create" class="nav-link {% if request.url.path == '/create' %}active{% endif %}">Создание</a>
+        <a href="/templates" class="nav-link {% if request.url.path.startswith('/templates') %}active{% endif %}">Шаблоны</a>
+        <a href="/search" class="nav-link {% if request.url.path.startswith('/search') %}active{% endif %}">Поиск</a>
+        <a href="/settings" class="nav-link {% if request.url.path.startswith('/settings') %}active{% endif %}">Настройки</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t border-gray-200 bg-white">
+    <div class="max-w-6xl mx-auto px-4 py-4 text-xs text-gray-400 flex flex-wrap gap-3 justify-between">
+      <span>AI-слепки — локальная библиотека машиночитаемых конспектов</span>
+      <span>FastAPI · SQLite FTS5 · Ollama / LM Studio</span>
+    </div>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
