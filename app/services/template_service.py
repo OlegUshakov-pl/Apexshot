@@ -21,7 +21,7 @@ def _row_to_out(row: Any) -> TemplateOut:
         user_prompt=row["user_prompt"],
         chunk_user_prompt=row["chunk_user_prompt"],
         merge_user_prompt=row["merge_user_prompt"],
-        schema_json=row["schema_json"],
+        template_schema=row["schema_json"],
         enabled=bool(row["enabled"]),
         is_default=bool(row["is_default"]),
         created_at=row["created_at"],
@@ -42,7 +42,7 @@ def _validate(payload: TemplateIn) -> None:
     if not payload.user_prompt.strip():
         raise TemplateError("user prompt не может быть пустым")
     try:
-        parsed = json.loads(payload.schema_json or "{}")
+        parsed = json.loads(payload.template_schema or "{}")
     except json.JSONDecodeError as exc:
         raise TemplateError(f"schema_json — не валидный JSON: {exc}") from exc
     if not isinstance(parsed, dict):
@@ -93,15 +93,15 @@ def create_template(payload: TemplateIn) -> TemplateOut:
                 payload.system_prompt,
                 payload.user_prompt,
                 payload.chunk_user_prompt,
-                payload.merge_user_prompt,
-                payload.schema_json,
-                1 if payload.enabled else 0,
-                1 if payload.is_default else 0,
-                ts,
-                ts,
-            ),
-        )
-        template_id = int(cur.lastrowid)
+            payload.merge_user_prompt,
+            payload.template_schema,
+            1 if payload.enabled else 0,
+            1 if payload.is_default else 0,
+            ts,
+            ts,
+        ),
+    )
+    template_id = int(cur.lastrowid)
     if payload.is_default:
         set_default(template_id, payload.snapshot_type)
     return get_template(template_id)  # type: ignore[return-value]
@@ -128,7 +128,7 @@ def update_template(template_id: int, payload: TemplateIn) -> Optional[TemplateO
                 payload.user_prompt,
                 payload.chunk_user_prompt,
                 payload.merge_user_prompt,
-                payload.schema_json,
+                payload.template_schema,
                 1 if payload.enabled else 0,
                 1 if payload.is_default else 0,
                 database.now_iso(),

@@ -328,7 +328,7 @@ def _run_pipeline(
         corpus_for_prompt = corpus
 
     update_job(job_id, step="generating", progress=45)
-    schema_pretty = template.schema_json or json.dumps(SNAPSHOT_SCHEMA, ensure_ascii=False)
+    schema_pretty = template.template_schema or json.dumps(SNAPSHOT_SCHEMA, ensure_ascii=False)
     mapping = {
         "type": snapshot_type,
         "directory": norm_dir,

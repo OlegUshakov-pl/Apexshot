@@ -159,7 +159,7 @@ def test_template(template_id: int, payload: TemplateTestIn) -> TemplateTestOut:
         raise _error(404, "Template not found", f"Шаблон {template_id} не найден")
     settings = settings_service.get_settings()
     sample = payload.sample_text.strip() or "Ollama позволяет запускать локальные LLM локально."
-    schema_pretty = template.schema_json or "{}"
+    schema_pretty = template.template_schema or "{}"
     mapping = {
         "type": payload.type or template.snapshot_type,
         "directory": payload.directory,
@@ -328,7 +328,7 @@ def list_models() -> dict:
 def meta() -> dict:
     return {
         "models": snapshot_search.distinct_models(),
-        "templates": [t.model_dump() for t in template_service.list_templates()],
+        "templates": [t.model_dump(by_alias=True) for t in template_service.list_templates()],
         "types": config.SNAPSHOT_TYPES,
     }
 

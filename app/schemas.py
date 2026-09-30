@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from . import config
 
@@ -54,6 +54,8 @@ class ProviderTestOut(BaseModel):
 
 
 class TemplateIn(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     name: str
     description: str = ""
     snapshot_type: str = "general"
@@ -61,12 +63,14 @@ class TemplateIn(BaseModel):
     user_prompt: str = ""
     chunk_user_prompt: str = ""
     merge_user_prompt: str = ""
-    schema_json: str = "{}"
+    template_schema: str = Field(default="{}", alias="schema_json")
     enabled: bool = True
     is_default: bool = False
 
 
 class TemplateOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     id: int
     name: str
     description: str = ""
@@ -75,7 +79,7 @@ class TemplateOut(BaseModel):
     user_prompt: str = ""
     chunk_user_prompt: str = ""
     merge_user_prompt: str = ""
-    schema_json: str = "{}"
+    template_schema: str = Field(default="{}", alias="schema_json")
     enabled: bool = True
     is_default: bool = False
     created_at: str = ""
