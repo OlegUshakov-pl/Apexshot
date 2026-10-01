@@ -21,6 +21,7 @@ async def lifespan(app: FastAPI):
     from .services import settings_service
 
     settings_service.sync_language()
+    database.reset_stale_jobs(i18n.t("Задача прервана перезапуском сервера"))
     yield
 
 

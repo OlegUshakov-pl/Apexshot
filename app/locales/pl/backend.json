@@ -50,5 +50,8 @@
   "Ошибка LM Studio ({status}): {body}": "Błąd LM Studio ({status}): {body}",
   "Превышено время ожидания ответа от {url} ({timeout} c)": "Przekroczono czas oczekiwania na odpowiedź z {url} ({timeout} s)",
   "Не удалось подключиться к {provider} на {url}: {error}": "Nie udało się połączyć z {provider} pod adresem {url}: {error}",
-  "Провайдер вернул некорректный JSON: {error}": "Dostawca zwrócił nieprawidłowy JSON: {error}"
+  "Провайдер вернул некорректный JSON: {error}": "Dostawca zwrócił nieprawidłowy JSON: {error}",
+  "Модель вернула пустой слепок или скопировала схему вместо данных": "Model zwrócił pusty zrzut lub skopiował schemat zamiast danych",
+  "Модель вернула пустой слепок — нет ни заголовка, ни фактов. Увеличьте max_tokens или уменьшите max_chunk_chars в настройках.": "Model zwrócił pusty zrzut — brak tytułu i faktów. Zwiększ max_tokens lub zmniejsz max_chunk_chars w ustawieniach.",
+  "Задача прервана перезапуском сервера": "Zadanie przerwane przez ponowne uruchomienie serwera"
 }

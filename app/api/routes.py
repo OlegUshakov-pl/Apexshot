@@ -178,7 +178,7 @@ def test_template(template_id: int, payload: TemplateTestIn) -> TemplateTestOut:
     except llm_provider.ProviderError as exc:
         return TemplateTestOut(success=False, raw_output="", parsed_json=None, error=exc.detail)
     try:
-        parsed = snapshot_generator.parse_json_response(raw)
+        parsed = snapshot_generator.parse_snapshot_response(raw)
     except snapshot_generator.JsonParseError as exc:
         return TemplateTestOut(success=False, raw_output=raw, parsed_json=None, error=str(exc))
     return TemplateTestOut(success=True, raw_output=raw, parsed_json=parsed, error=None)

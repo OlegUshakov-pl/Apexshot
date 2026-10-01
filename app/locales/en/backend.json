@@ -50,5 +50,8 @@
   "Ошибка LM Studio ({status}): {body}": "LM Studio error ({status}): {body}",
   "Превышено время ожидания ответа от {url} ({timeout} c)": "Timed out waiting for a response from {url} ({timeout}s)",
   "Не удалось подключиться к {provider} на {url}: {error}": "Could not connect to {provider} at {url}: {error}",
-  "Провайдер вернул некорректный JSON: {error}": "The provider returned invalid JSON: {error}"
+  "Провайдер вернул некорректный JSON: {error}": "The provider returned invalid JSON: {error}",
+  "Модель вернула пустой слепок или скопировала схему вместо данных": "The model returned an empty snapshot or copied the schema instead of data",
+  "Модель вернула пустой слепок — нет ни заголовка, ни фактов. Увеличьте max_tokens или уменьшите max_chunk_chars в настройках.": "The model returned an empty snapshot — no title and no facts. Increase max_tokens or lower max_chunk_chars in the settings.",
+  "Задача прервана перезапуском сервера": "Job interrupted by a server restart"
 }

@@ -87,12 +87,21 @@ def normalize_for_match(text: str) -> str:
     return re.sub(r"\s+", " ", (text or "").lower()).strip()
 
 
+def clean_str(value: Any) -> str:
+    return value.strip() if isinstance(value, str) else ""
+
+
+def as_list(value: Any) -> list:
+    return value if isinstance(value, list) else []
+
+
 def verify_quotes(data: dict[str, Any], corpus: str) -> dict[str, Any]:
     corpus_norm = normalize_for_match(corpus)
     for fact in data.get("facts") or []:
         if not isinstance(fact, dict):
             continue
-        quote = fact.get("quote") or ""
+        quote = clean_str(fact.get("quote"))
+        fact["quote"] = quote
         found = bool(quote) and normalize_for_match(quote) in corpus_norm
         fact["verified"] = found
         if not found:
@@ -108,7 +117,8 @@ def verify_quotes(data: dict[str, Any], corpus: str) -> dict[str, Any]:
     for highlight in data.get("highlights") or []:
         if not isinstance(highlight, dict):
             continue
-        quote = highlight.get("quote") or ""
+        quote = clean_str(highlight.get("quote"))
+        highlight["quote"] = quote
         highlight["verified"] = bool(quote) and normalize_for_match(quote) in corpus_norm
     return data
 
@@ -157,21 +167,23 @@ def empty_partial() -> dict[str, Any]:
 
 def normalize_snapshot_doc(data: dict[str, Any]) -> dict[str, Any]:
     doc = empty_partial()
-    doc["title"] = str(data.get("title") or "").strip()
-    doc["summary"] = str(data.get("summary") or "").strip()
-    sections = data.get("sections") or []
+    doc["title"] = clean_str(data.get("title"))
+    doc["summary"] = clean_str(data.get("summary"))
+    sections = as_list(data.get("sections"))
     doc["sections"] = [
-        {"heading": str(s.get("heading", "")), "text": str(s.get("text", ""))}
+        {"heading": clean_str(s.get("heading")), "text": clean_str(s.get("text"))}
         for s in sections
         if isinstance(s, dict)
     ]
     facts = []
-    for idx, fact in enumerate(data.get("facts") or [], start=1):
+    for idx, fact in enumerate(as_list(data.get("facts")), start=1):
         if not isinstance(fact, dict):
             continue
         fact.setdefault("id", f"f{idx}")
         fact.setdefault("type", "inferred")
         fact.setdefault("file", "")
+        fact["claim"] = clean_str(fact.get("claim"))
+        fact["quote"] = clean_str(fact.get("quote"))
         try:
             fact["confidence"] = round(float(fact.get("confidence") or 0.0), 2)
         except (TypeError, ValueError):
@@ -180,27 +192,77 @@ def normalize_snapshot_doc(data: dict[str, Any]) -> dict[str, Any]:
     doc["facts"] = facts
     doc["highlights"] = [
         {
-            "quote": str(h.get("quote", "")),
-            "file": str(h.get("file", "")),
-            "reason": str(h.get("reason", "")),
+            "quote": clean_str(h.get("quote")),
+            "file": clean_str(h.get("file")),
+            "reason": clean_str(h.get("reason")),
         }
-        for h in (data.get("highlights") or [])
+        for h in as_list(data.get("highlights"))
         if isinstance(h, dict)
     ]
     entities = data.get("entities") or {}
     if not isinstance(entities, dict):
         entities = {}
     for key in ("topics", "organizations", "people", "technologies", "locations", "dates"):
-        value = entities.get(key) or []
-        doc["entities"][key] = [str(v) for v in value] if isinstance(value, list) else []
-    doc["questions"] = [str(q) for q in (data.get("questions") or [])]
-    doc["tags"] = [str(t) for t in (data.get("tags") or [])]
+        value = entities.get(key)
+        doc["entities"][key] = [clean_str(v) for v in value] if isinstance(value, list) else []
+    doc["questions"] = [clean_str(q) for q in as_list(data.get("questions"))]
+    doc["tags"] = [clean_str(t) for t in as_list(data.get("tags"))]
     try:
         doc["confidence"] = round(float(data.get("confidence") or 0.0), 2)
     except (TypeError, ValueError):
         doc["confidence"] = 0.0
     doc["confidence"] = min(1.0, max(0.0, doc["confidence"]))
     return doc
+
+
+SCHEMA_ECHO_KEYS = (
+    "title",
+    "summary",
+    "facts",
+    "sections",
+    "highlights",
+    "entities",
+    "questions",
+    "tags",
+)
+
+
+def looks_like_schema_echo(data: dict[str, Any]) -> bool:
+    """Model echoed the JSON schema instead of real data."""
+    properties = data.get("properties")
+    if not isinstance(properties, dict):
+        return False
+    return not any(key in data for key in SCHEMA_ECHO_KEYS)
+
+
+def unwrap_schema_echo(data: dict[str, Any]) -> dict[str, Any]:
+    """Small models often wrap real fields inside schema `properties`."""
+    if looks_like_schema_echo(data):
+        properties = data.get("properties")
+        if isinstance(properties, dict):
+            return properties
+    return data
+
+
+def has_content(doc: dict[str, Any]) -> bool:
+    if doc.get("title") or doc.get("summary"):
+        return True
+    for key in ("sections", "facts", "highlights", "tags", "questions"):
+        if doc.get(key):
+            return True
+    return any(bool(values) for values in (doc.get("entities") or {}).values())
+
+
+def parse_snapshot_response(text: str) -> dict[str, Any]:
+    """Parse a model response and reject empty / schema-echo answers."""
+    data = unwrap_schema_echo(parse_json_response(text))
+    if not has_content(normalize_snapshot_doc(data)):
+        raise JsonParseError(
+            i18n.t(
+                "Модель вернула пустой слепок или скопировала схему вместо данных"
+            )
+        )
+    return data
 
 
 def build_search_text(doc: dict[str, Any]) -> str:
@@ -390,6 +452,14 @@ def _run_pipeline(
 
     update_job(job_id, step="parsing_json", progress=75)
     doc = normalize_snapshot_doc(parsed)
+    if not has_content(doc):
+        raise GenerationError(
+            "Empty snapshot",
+            i18n.t(
+                "Модель вернула пустой слепок — нет ни заголовка, ни фактов. "
+                "Увеличьте max_tokens или уменьшите max_chunk_chars в настройках."
+            ),
+        )
 
     update_job(job_id, step="verifying_quotes", progress=85)
     doc = verify_quotes(doc, corpus)
@@ -442,7 +512,7 @@ def _parse_with_retry(
     last_error: Optional[Exception] = None
     for attempt in range(MAX_ATTEMPTS):
         try:
-            return parse_json_response(raw)
+            return parse_snapshot_response(raw)
         except JsonParseError as exc:
             last_error = exc
             if attempt == MAX_ATTEMPTS - 1:
@@ -453,7 +523,9 @@ def _parse_with_retry(
             except llm_provider.ProviderError as exc:
                 last_error = exc
                 break
-        raise GenerationError("Invalid JSON", str(last_error or i18n.t("Модель вернула невалидный JSON")))
+    if isinstance(last_error, llm_provider.ProviderError):
+        raise last_error
+    raise GenerationError("Invalid JSON", str(last_error or i18n.t("Модель вернула невалидный JSON")))
 
 
 def _save_snapshot(

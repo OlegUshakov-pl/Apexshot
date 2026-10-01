@@ -171,6 +171,20 @@ def init_db() -> None:
         _seed_templates(conn)
 
 
+def reset_stale_jobs(message: str = "") -> int:
+    """Fail jobs left pending/processing by a previous process."""
+    with db() as conn:
+        cur = conn.execute(
+            """
+            UPDATE jobs
+            SET status = 'failed', error = ?, finished_at = ?
+            WHERE status IN ('pending', 'processing')
+            """,
+            (message or "Job interrupted by server restart", now_iso()),
+        )
+        return int(cur.rowcount)
+
+
 def _migrate(conn: sqlite3.Connection) -> None:
     columns = {row["name"] for row in conn.execute("PRAGMA table_info(settings)")}
     if "language" not in columns:
