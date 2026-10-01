@@ -12,6 +12,7 @@ class SettingsOut(BaseModel):
     base_url: str = ""
     api_key: str = ""
     model: str = ""
+    language: str = "en"
     temperature: float = 0.1
     top_p: float = 0.9
     seed: int = 42
@@ -28,6 +29,7 @@ class SettingsUpdate(BaseModel):
     base_url: str = ""
     api_key: str = ""
     model: str = ""
+    language: str = "en"
     temperature: float = 0.1
     top_p: float = 0.9
     seed: int = 42
@@ -114,7 +116,7 @@ class JobOut(BaseModel):
     status: str = "pending"
     progress: int = 0
     step: str = "queued"
-    step_label: str = "Очередь"
+    step_label: str = ""
     error: Optional[str] = None
     snapshot_id: Optional[str] = None
     created_at: str = ""

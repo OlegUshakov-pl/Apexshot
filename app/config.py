@@ -64,6 +64,7 @@ DEFAULTS = {
     "base_url": DEFAULT_BASE_URLS["ollama"],
     "api_key": "",
     "model": "",
+    "language": "en",
     "temperature": 0.1,
     "top_p": 0.9,
     "seed": 42,

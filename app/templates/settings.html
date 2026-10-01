@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Настройки · AI-слепки{% endblock %}
+{% block title %}{{ t('Настройки') }} · AI-слепки{% endblock %}
 
 {% block content %}
 <div x-data="settingsPage()" x-init="load()" class="max-w-4xl mx-auto space-y-6">
   <div>
-    <h1 class="text-2xl font-bold text-gray-900">Настройки</h1>
-    <p class="text-sm text-gray-500 mt-1">Провайдер LLM, параметры генерации и активные шаблоны по типам.</p>
+    <h1 class="text-2xl font-bold text-gray-900">{{ t('Настройки') }}</h1>
+    <p class="text-sm text-gray-500 mt-1">{{ t('Провайдер LLM, параметры генерации и активные шаблоны по типам.') }}</p>
   </div>
 
   <div x-show="message" x-cloak
@@ -13,12 +13,31 @@
        :class="ok ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'"
        x-text="message"></div>
 
-  <!-- PROVIDER -->
+  <!-- LANGUAGE -->
   <section class="bg-white shadow border border-gray-100 p-6 space-y-4">
-    <h2 class="font-semibold text-gray-900">Провайдер</h2>
+    <h2 class="font-semibold text-gray-900">{{ t('Язык интерфейса') }}</h2>
     <div class="grid sm:grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Тип провайдера</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('Язык') }}</label>
+        <select x-model="form.language" @change="save(true)"
+                class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
+          <option value="en">English</option>
+          <option value="pl">Polski</option>
+          <option value="ru">Русский</option>
+        </select>
+      </div>
+      <div class="flex items-end text-xs text-gray-500 pb-1">
+        {{ t('Интерфейс переключится после сохранения.') }}
+      </div>
+    </div>
+  </section>
+
+  <!-- PROVIDER -->
+  <section class="bg-white shadow border border-gray-100 p-6 space-y-4">
+    <h2 class="font-semibold text-gray-900">{{ t('Провайдер') }}</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('Тип провайдера') }}</label>
         <select x-model="form.provider" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
           <option value="ollama">Ollama</option>
           <option value="lmstudio">LM Studio</option>
@@ -31,19 +50,19 @@
                placeholder="http://localhost:11434">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">API key (не обязателен)</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">API key {{ t('(не обязателен)') }}</label>
         <input x-model="form.api_key" type="password" autocomplete="off"
                class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500" placeholder="">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Модель</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('Модель') }}</label>
         <div class="flex gap-2">
           <input x-model="form.model" list="model-list"
                  class="flex-1 border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500" placeholder="llama3.1:8b">
           <datalist id="model-list">
             <template x-for="m in availableModels" :key="m"><option :value="m"></option></template>
           </datalist>
-          <button @click="fetchModels()" class="px-3 py-2 bg-white border border-gray-300 text-sm hover:bg-gray-50">Список</button>
+          <button @click="fetchModels()" class="px-3 py-2 bg-white border border-gray-300 text-sm hover:bg-gray-50">{{ t('Список') }}</button>
         </div>
       </div>
     </div>
@@ -51,16 +70,16 @@
     <div class="flex flex-wrap items-center gap-3">
       <button @click="testConnection()" :disabled="testing"
               class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
-        <span x-show="!testing">Тест соединения</span><span x-show="testing">Проверка…</span>
+        <span x-show="!testing">{{ t('Тест соединения') }}</span><span x-show="testing">{{ t('Проверка…') }}</span>
       </button>
       <div class="text-sm" x-show="test">
         <span class="inline-flex items-center px-3 py-1 text-xs font-medium mr-2"
               :class="test.reachable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-              x-text="test.reachable ? 'reachable' : 'unreachable'"></span>
+              x-text="test.reachable ? tr('reachable') : tr('unreachable')"></span>
         <span class="inline-flex items-center px-3 py-1 text-xs font-medium mr-2"
               :class="test.model_available ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'"
-              x-text="test.model_available ? 'model available' : 'model missing'"></span>
-        <span class="text-xs text-gray-500" x-text="test.models ? `моделей: ${test.models.length}` : ''"></span>
+              x-text="test.model_available ? tr('model available') : tr('model missing')"></span>
+        <span class="text-xs text-gray-500" x-text="test.models ? tr('моделей: {n}', {n: test.models.length}) : ''"></span>
       </div>
       <span class="text-xs text-red-500" x-show="test && test.error" x-text="test.error"></span>
     </div>
@@ -68,7 +87,7 @@
 
   <!-- GENERATION -->
   <section class="bg-white shadow border border-gray-100 p-6 space-y-4">
-    <h2 class="font-semibold text-gray-900">Параметры генерации</h2>
+    <h2 class="font-semibold text-gray-900">{{ t('Параметры генерации') }}</h2>
     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">temperature</label>
@@ -87,7 +106,7 @@
         <input type="number" min="100" x-model.number="form.max_tokens" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">timeout, сек</label>
+        <label class="block text-xs font-medium text-gray-500 mb-1">timeout, {{ t('сек') }}</label>
         <input type="number" min="10" x-model.number="form.timeout_seconds" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
       </div>
       <div>
@@ -109,7 +128,7 @@
 
   <!-- DEFAULT TEMPLATES -->
   <section class="bg-white shadow border border-gray-100 p-6 space-y-4">
-    <h2 class="font-semibold text-gray-900">Активные шаблоны по типам</h2>
+    <h2 class="font-semibold text-gray-900">{{ t('Активные шаблоны по типам') }}</h2>
     <div class="grid sm:grid-cols-2 gap-4">
       <template x-for="type in types" :key="type">
         <div>
@@ -123,8 +142,8 @@
           </template>
           <template x-if="!templatesFor(type).length">
             <div class="bg-amber-50 border border-amber-200 text-amber-800 text-sm px-3 py-2 flex items-center justify-between gap-2">
-              <span>Нет включённых шаблонов</span>
-              <a href="/templates" class="text-xs underline whitespace-nowrap">Перейти к шаблонам</a>
+              <span>{{ t('Нет включённых шаблонов') }}</span>
+              <a href="/templates" class="text-xs underline whitespace-nowrap">{{ t('Перейти к шаблонам') }}</a>
             </div>
           </template>
         </div>
@@ -135,7 +154,7 @@
   <div class="flex justify-end">
     <button @click="save()" :disabled="saving"
             class="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
-      <span x-show="!saving">Сохранить настройки</span><span x-show="saving">Сохранение…</span>
+      <span x-show="!saving">{{ t('Сохранить настройки') }}</span><span x-show="saving">{{ t('Сохранение…') }}</span>
     </button>
   </div>
 </div>
@@ -145,7 +164,7 @@
 <script>
 function settingsPage() {
   return {
-    form: {provider:'ollama', base_url:'', api_key:'', model:'', temperature:0.1, top_p:0.9,
+    form: {provider:'ollama', base_url:'', api_key:'', model:'', language:'en', temperature:0.1, top_p:0.9,
            seed:42, max_tokens:2000, timeout_seconds:300, json_mode:true,
            max_input_chars:12000, max_chunk_chars:6000, default_templates:{}},
     types: ['article','documentation','news','forum','notes','general'],
@@ -166,7 +185,7 @@ function settingsPage() {
         this.form.default_templates = s.default_templates || {};
         this.templates = t;
       } catch (e) {
-        this.ok = false; this.message = 'Не удалось загрузить настройки: ' + e;
+        this.ok = false; this.message = tr('Не удалось загрузить настройки') + ': ' + e;
       }
     },
     templatesFor(type) { return this.templates.filter(t => t.snapshot_type === type && t.enabled); },
@@ -178,8 +197,8 @@ function settingsPage() {
         const res = await fetch('/api/models');
         const data = await res.json();
         if (res.ok) this.availableModels = data.models || [];
-        else this.ok = false, this.message = (data.detail && data.detail.detail) || 'Не удалось получить список моделей';
-      } catch (e) { this.ok = false; this.message = 'Ошибка: ' + e; }
+        else this.ok = false, this.message = (data.detail && data.detail.detail) || tr('Не удалось получить список моделей');
+      } catch (e) { this.ok = false; this.message = tr('Ошибка') + ': ' + e; }
     },
     async testConnection() {
       this.testing = true; this.test = null;
@@ -193,7 +212,7 @@ function settingsPage() {
       } catch (e) { this.test = {reachable:false, model_available:false, models:[], error:String(e)}; }
       this.testing = false;
     },
-    async save() {
+    async save(reload) {
       this.saving = true; this.message = '';
       try {
         const payload = {...this.form};
@@ -206,14 +225,15 @@ function settingsPage() {
         });
         const data = await res.json();
         if (res.ok) {
-          this.ok = true; this.message = 'Настройки сохранены';
+          this.ok = true; this.message = tr('Настройки сохранены');
           this.form = {...this.form, ...data};
           this.form.default_templates = data.default_templates || {};
+          if (reload) { setTimeout(() => location.reload(), 400); }
         } else {
           this.ok = false;
-          this.message = (data.detail && data.detail.detail) || data.detail || 'Ошибка сохранения';
+          this.message = (data.detail && data.detail.detail) || data.detail || tr('Ошибка сохранения');
         }
-      } catch (e) { this.ok = false; this.message = 'Ошибка запроса: ' + e; }
+      } catch (e) { this.ok = false; this.message = tr('Ошибка запроса') + ': ' + e; }
       this.saving = false;
       setTimeout(() => this.message = '', 4000);
     }

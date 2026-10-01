@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from .. import config, database
+from .. import config, database, i18n
 from ..schemas import SettingsOut, SettingsUpdate
 
 
@@ -12,11 +12,13 @@ def _row_to_settings(row: Any) -> SettingsOut:
         defaults = json.loads(row["default_templates_json"] or "{}")
     except json.JSONDecodeError:
         defaults = {}
+    keys = row.keys()
     return SettingsOut(
         provider=row["provider"],
         base_url=row["base_url"],
         api_key=row["api_key"],
         model=row["model"],
+        language=row["language"] if "language" in keys else config.DEFAULTS["language"],
         temperature=row["temperature"],
         top_p=row["top_p"],
         seed=row["seed"],
@@ -45,11 +47,12 @@ def update_settings(payload: SettingsUpdate) -> SettingsOut:
     if not base_url:
         base_url = config.DEFAULT_BASE_URLS[provider]
     defaults = {k: v for k, v in payload.default_templates.items() if v}
+    language = payload.language if payload.language in i18n.LANGUAGES else i18n.DEFAULT_LANG
     with database.db() as conn:
         conn.execute(
             """
             UPDATE settings SET
-              provider = ?, base_url = ?, api_key = ?, model = ?, temperature = ?,
+              provider = ?, base_url = ?, api_key = ?, model = ?, language = ?, temperature = ?,
               top_p = ?, seed = ?, max_tokens = ?, timeout_seconds = ?, json_mode = ?,
               max_input_chars = ?, max_chunk_chars = ?, default_templates_json = ?, updated_at = ?
             WHERE id = 1
@@ -59,6 +62,7 @@ def update_settings(payload: SettingsUpdate) -> SettingsOut:
                 base_url,
                 payload.api_key or "",
                 payload.model or "",
+                language,
                 payload.temperature,
                 payload.top_p,
                 payload.seed,
@@ -71,7 +75,15 @@ def update_settings(payload: SettingsUpdate) -> SettingsOut:
                 database.now_iso(),
             ),
         )
+    i18n.set_language(language)
     return get_settings()
+
+
+def sync_language() -> str:
+    """Load the stored language into the i18n module (call on startup)."""
+    language = get_settings().language
+    i18n.set_language(language)
+    return language
 
 
 def active_template_id(snapshot_type: str) -> int | None:

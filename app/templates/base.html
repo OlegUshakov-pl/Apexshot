@@ -1,11 +1,24 @@
 <!doctype html>
-<html lang="ru">
+<html lang="{{ lang | default('en') }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}AI-слепки{% endblock %}</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+  <script>
+    window.LANG = {{ lang | default('en') | tojson }};
+    window.I18N = {{ t_dict | default({}) | tojson }};
+    window.tr = function (key, vars) {
+      var text = (window.I18N && window.I18N[key] !== undefined) ? window.I18N[key] : key;
+      if (vars) {
+        Object.keys(vars).forEach(function (k) {
+          text = text.split('{' + k + '}').join(vars[k]);
+        });
+      }
+      return text;
+    };
+  </script>
   <style>
     [x-cloak] { display: none !important; }
     ::-webkit-scrollbar { width: 10px; height: 10px; }

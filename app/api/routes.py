@@ -7,7 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 
-from .. import config, database
+from .. import config, database, i18n
 from ..models import snapshot_type_label, step_label
 from ..schemas import (
     HealthOut,
@@ -73,13 +73,15 @@ def get_settings() -> SettingsOut:
 @api.put("/settings", response_model=SettingsOut)
 def put_settings(payload: SettingsUpdate) -> SettingsOut:
     if payload.provider not in config.PROVIDERS:
-        raise _error(400, "Invalid provider", "Провайдер должен быть ollama или lmstudio")
+        raise _error(400, "Invalid provider", i18n.t("Провайдер должен быть ollama или lmstudio"))
+    if payload.language not in i18n.LANGUAGES:
+        raise _error(400, "Invalid language", i18n.t("Язык должен быть одним из: en, pl, ru"))
     if payload.temperature < 0 or payload.temperature > 2:
-        raise _error(400, "Invalid temperature", "temperature должен быть в диапазоне 0.0–2.0")
+        raise _error(400, "Invalid temperature", i18n.t("temperature должен быть в диапазоне 0.0–2.0"))
     if payload.max_input_chars < 500:
-        raise _error(400, "Invalid max_input_chars", "max_input_chars должен быть не меньше 500")
+        raise _error(400, "Invalid max_input_chars", i18n.t("max_input_chars должен быть не меньше 500"))
     if payload.max_chunk_chars < 200:
-        raise _error(400, "Invalid max_chunk_chars", "max_chunk_chars должен быть не меньше 200")
+        raise _error(400, "Invalid max_chunk_chars", i18n.t("max_chunk_chars должен быть не меньше 200"))
     return settings_service.update_settings(payload)
 
 
@@ -110,7 +112,7 @@ def create_template(payload: TemplateIn) -> TemplateOut:
 def get_template(template_id: int) -> TemplateOut:
     template = template_service.get_template(template_id)
     if not template:
-        raise _error(404, "Template not found", f"Шаблон {template_id} не найден")
+        raise _error(404, "Template not found", i18n.t("Шаблон {id} не найден", id=template_id))
     return template
 
 
@@ -121,7 +123,7 @@ def update_template(template_id: int, payload: TemplateIn) -> TemplateOut:
     except template_service.TemplateError as exc:
         raise _error(400, "Invalid template", str(exc))
     if not template:
-        raise _error(404, "Template not found", f"Шаблон {template_id} не найден")
+        raise _error(404, "Template not found", i18n.t("Шаблон {id} не найден", id=template_id))
     return template
 
 
@@ -129,7 +131,7 @@ def update_template(template_id: int, payload: TemplateIn) -> TemplateOut:
 def delete_template(template_id: int) -> dict:
     template = template_service.get_template(template_id)
     if not template:
-        raise _error(404, "Template not found", f"Шаблон {template_id} не найден")
+        raise _error(404, "Template not found", i18n.t("Шаблон {id} не найден", id=template_id))
     warnings = template_service.usage_warnings(template)
     template_service.delete_template(template_id)
     return {"deleted": True, "warnings": warnings}
@@ -148,7 +150,7 @@ def set_default_template(template_id: int) -> dict:
 def toggle_template(template_id: int, enabled: bool = Query(True)) -> TemplateOut:
     template = template_service.toggle_enabled(template_id, enabled)
     if not template:
-        raise _error(404, "Template not found", f"Шаблон {template_id} не найден")
+        raise _error(404, "Template not found", i18n.t("Шаблон {id} не найден", id=template_id))
     return template
 
 
@@ -156,7 +158,7 @@ def toggle_template(template_id: int, enabled: bool = Query(True)) -> TemplateOu
 def test_template(template_id: int, payload: TemplateTestIn) -> TemplateTestOut:
     template = template_service.get_template(template_id)
     if not template:
-        raise _error(404, "Template not found", f"Шаблон {template_id} не найден")
+        raise _error(404, "Template not found", i18n.t("Шаблон {id} не найден", id=template_id))
     settings = settings_service.get_settings()
     sample = payload.sample_text.strip() or "Ollama позволяет запускать локальные LLM локально."
     schema_pretty = template.template_schema or "{}"
@@ -191,23 +193,29 @@ def create_snapshot(
         raise _error(
             400,
             "Invalid type",
-            f"Недопустимый тип слепка. Допустимые: {', '.join(config.SNAPSHOT_TYPES)}",
+            i18n.t(
+                "Недопустимый тип слепка. Допустимые: {types}",
+                types=", ".join(config.SNAPSHOT_TYPES),
+            ),
         )
     directory = (payload.directory or "").strip().strip('"')
     if not directory:
-        raise _error(400, "Directory required", "Укажите директорию")
+        raise _error(400, "Directory required", i18n.t("Укажите директорию"))
     path = Path(directory)
     if not path.exists():
-        raise _error(400, "Directory not found", "Указанная директория не существует или недоступна")
+        raise _error(400, "Directory not found", i18n.t("Указанная директория не существует или недоступна"))
     if not path.is_dir():
-        raise _error(400, "Not a directory", "Указанный путь не является директорией")
+        raise _error(400, "Not a directory", i18n.t("Указанный путь не является директорией"))
     template = template_service.get_active_template(payload.snapshot_type)
     if template is None:
         raise _error(
             409,
             "No active template",
-            f"Для типа {payload.snapshot_type} нет активного шаблона. "
-            "Создайте или включите шаблон на странице Шаблоны.",
+            i18n.t(
+                "Для типа {type} нет активного шаблона. "
+                "Создайте или включите шаблон на странице Шаблоны.",
+                type=payload.snapshot_type,
+            ),
         )
     job_id = snapshot_generator.create_job(payload.snapshot_type, str(path), template.id)
     snapshot_id = snapshot_generator.make_snapshot_id(
@@ -258,7 +266,7 @@ def list_snapshots(
 def get_snapshot(snapshot_id: str) -> dict:
     data = snapshot_search.get_snapshot(snapshot_id)
     if not data:
-        raise _error(404, "Snapshot not found", f"Слепок {snapshot_id} не найден")
+        raise _error(404, "Snapshot not found", i18n.t("Слепок {id} не найден", id=snapshot_id))
     data["sections"] = json.loads(data.pop("sections_json") or "[]")
     data["facts"] = json.loads(data.pop("facts_json") or "[]")
     data["highlights"] = json.loads(data.pop("highlights_json") or "[]")
@@ -274,7 +282,7 @@ def get_snapshot(snapshot_id: str) -> dict:
 def raw_snapshot(snapshot_id: str) -> Response:
     data = snapshot_search.read_raw(snapshot_id)
     if data is None:
-        raise _error(404, "Snapshot not found", f"JSON-файл слепка {snapshot_id} не найден")
+        raise _error(404, "Snapshot not found", i18n.t("JSON-файл слепка {id} не найден", id=snapshot_id))
     return JSONResponse(
         content=data,
         headers={"Content-Disposition": f'attachment; filename="{snapshot_id}.json"'},
@@ -284,7 +292,7 @@ def raw_snapshot(snapshot_id: str) -> Response:
 @api.delete("/snapshots/{snapshot_id}")
 def delete_snapshot(snapshot_id: str) -> dict:
     if not snapshot_search.delete_snapshot(snapshot_id):
-        raise _error(404, "Snapshot not found", f"Слепок {snapshot_id} не найден")
+        raise _error(404, "Snapshot not found", i18n.t("Слепок {id} не найден", id=snapshot_id))
     return {"deleted": True}
 
 
@@ -293,7 +301,7 @@ def delete_snapshot(snapshot_id: str) -> dict:
 def get_job(job_id: int) -> JobOut:
     job = snapshot_generator.get_job(job_id)
     if not job:
-        raise _error(404, "Job not found", f"Задача {job_id} не найдена")
+        raise _error(404, "Job not found", i18n.t("Задача {id} не найдена", id=job_id))
     return JobOut(
         id=job["id"],
         snapshot_type=job["snapshot_type"],
@@ -337,7 +345,7 @@ def meta() -> dict:
 def preview_files(directory: str = Query(...), max_files: int = 50) -> dict:
     path = Path(directory)
     if not path.exists() or not path.is_dir():
-        raise _error(400, "Directory not found", "Указанная директория не существует")
+        raise _error(400, "Directory not found", i18n.t("Указанная директория не существует"))
     files = [str(f.relative_to(path)).replace("\\", "/") for f in text_extractor.collect_files(directory, max_files)]
     return {"count": len(files), "files": files}
 
@@ -371,12 +379,17 @@ def settings_page(request: Request):
 @pages.get("/snapshots/{snapshot_id}")
 def snapshot_page(request: Request, snapshot_id: str):
     if not snapshot_search.get_snapshot(snapshot_id):
-        raise _error(404, "Snapshot not found", f"Слепок {snapshot_id} не найден")
+        raise _error(404, "Snapshot not found", i18n.t("Слепок {id} не найден", id=snapshot_id))
     return _render(request, "snapshot_detail.html", {"snapshot_id": snapshot_id})
 
 
 def _render(request: Request, name: str, context: Optional[dict] = None):
-    ctx: dict = {"request": request}
+    lang = i18n.get_language()
+    ctx: dict = {
+        "request": request,
+        "lang": lang,
+        "t_dict": i18n.as_dict(lang),
+    }
     ctx.update(context or {})
     template = request.app.state.templates.get_template(name)
     return HTMLResponse(template.render(ctx))

@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS settings (
   base_url TEXT NOT NULL,
   api_key TEXT NOT NULL DEFAULT '',
   model TEXT NOT NULL,
+  language TEXT NOT NULL DEFAULT 'en',
   temperature REAL NOT NULL DEFAULT 0.1,
   top_p REAL NOT NULL DEFAULT 0.9,
   seed INTEGER NOT NULL DEFAULT 42,
@@ -163,10 +164,19 @@ def init_db() -> None:
     config.SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
     with db() as conn:
         conn.executescript(SCHEMA_SQL)
+        _migrate(conn)
         if fts_available(conn):
             conn.executescript(FTS_SQL)
         _seed_settings(conn)
         _seed_templates(conn)
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(settings)")}
+    if "language" not in columns:
+        conn.execute(
+            "ALTER TABLE settings ADD COLUMN language TEXT NOT NULL DEFAULT 'en'"
+        )
 
 
 def _seed_settings(conn: sqlite3.Connection) -> None:
@@ -176,10 +186,10 @@ def _seed_settings(conn: sqlite3.Connection) -> None:
     defaults = dict(config.DEFAULTS)
     conn.execute(
         """
-        INSERT INTO settings (id, provider, base_url, api_key, model, temperature, top_p,
+        INSERT INTO settings (id, provider, base_url, api_key, model, language, temperature, top_p,
           seed, max_tokens, timeout_seconds, json_mode, max_input_chars, max_chunk_chars,
           default_templates_json, updated_at)
-        VALUES (1, :provider, :base_url, :api_key, :model, :temperature, :top_p,
+        VALUES (1, :provider, :base_url, :api_key, :model, :language, :temperature, :top_p,
           :seed, :max_tokens, :timeout_seconds, :json_mode, :max_input_chars, :max_chunk_chars,
           :default_templates_json, :updated_at)
         """,

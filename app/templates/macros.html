@@ -20,8 +20,8 @@
 
 {% macro verified_badge(ok) %}
 {% if ok %}
-<span class="inline-flex items-center px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-800">verified</span>
+<span class="inline-flex items-center px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-800">{{ t('verified') }}</span>
 {% else %}
-<span class="inline-flex items-center px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">unverified</span>
+<span class="inline-flex items-center px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">{{ t('unverified') }}</span>
 {% endif %}
 {% endmacro %}

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from . import config
+from . import config, i18n
 
 JOB_STATUSES = ["pending", "processing", "success", "failed", "cancelled"]
 
@@ -22,8 +22,8 @@ def normalize_directory(path: str) -> str:
 
 
 def snapshot_type_label(value: str) -> str:
-    return config.TYPE_LABELS.get(value, value)
+    return i18n.t(config.TYPE_LABELS.get(value, value))
 
 
 def step_label(value: str) -> str:
-    return config.STEP_LABELS.get(value, value)
+    return i18n.t(config.STEP_LABELS.get(value, value))

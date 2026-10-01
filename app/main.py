@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import config, database
+from . import config, database, i18n
 from .api.routes import api, pages
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
@@ -18,6 +18,9 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     database.init_db()
+    from .services import settings_service
+
+    settings_service.sync_language()
     yield
 
 
@@ -27,6 +30,8 @@ STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 app.state.templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+app.state.templates.env.globals["t"] = i18n.t
+app.state.templates.env.globals["languages"] = i18n.LANGUAGES
 
 app.include_router(api)
 app.include_router(pages)
