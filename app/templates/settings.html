@@ -184,6 +184,9 @@ function settingsPage() {
         this.form = {...this.form, ...s};
         this.form.default_templates = s.default_templates || {};
         this.templates = t;
+        fetch('/api/models').then(r => (r.ok ? r.json() : null)).then(d => {
+          if (d) this.availableModels = d.models || [];
+        }).catch(() => {});
       } catch (e) {
         this.ok = false; this.message = tr('Не удалось загрузить настройки') + ': ' + e;
       }

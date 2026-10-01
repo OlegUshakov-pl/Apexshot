@@ -334,8 +334,17 @@ def list_models() -> dict:
 
 @api.get("/meta")
 def meta() -> dict:
+    settings = settings_service.get_settings()
+    provider_models: list[str] = []
+    try:
+        provider_models = llm_provider.list_models(
+            settings.provider, settings.base_url, settings.api_key, timeout=3
+        )
+    except llm_provider.ProviderError:
+        provider_models = []
+    models = sorted(set(provider_models) | set(snapshot_search.distinct_models()))
     return {
-        "models": snapshot_search.distinct_models(),
+        "models": models,
         "templates": [t.model_dump(by_alias=True) for t in template_service.list_templates()],
         "types": config.SNAPSHOT_TYPES,
     }
