@@ -1,7 +1,7 @@
 {
   "Шаблоны": "Szablony",
   "Шаблоны слепков": "Szablony zrzutów",
-  "Каждый шаблон задаёт system/user промпты и JSON-схему для своего типа слепka.": "Każdy szablon definiuje prompty system/user i schemat JSON dla swojego typu zrzutu.",
+  "Каждый шаблон задаёт system/user промпты и JSON-схему для своего типа слепка.": "Każdy szablon definiuje prompty system/user i schemat JSON dla swojego typu zrzutu.",
   "Новый шаблон": "Nowy szablon",
   "Название": "Tytuł",
   "Тип": "Typ",
