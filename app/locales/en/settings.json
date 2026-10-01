@@ -24,5 +24,6 @@
   "Ошибка": "Error",
   "Настройки сохранены": "Settings saved",
   "Ошибка сохранения": "Save error",
-  "Ошибка запроса": "Request error"
+  "Ошибка запроса": "Request error",
+  "Нажмите «Список», чтобы загрузить модели": "Click \"List\" to load models"
 }

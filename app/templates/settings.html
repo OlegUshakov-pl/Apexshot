@@ -64,6 +64,18 @@
           </datalist>
           <button @click="fetchModels()" class="px-3 py-2 bg-white border border-gray-300 text-sm hover:bg-gray-50">{{ t('Список') }}</button>
         </div>
+        <div class="flex flex-wrap gap-2 mt-2" x-show="availableModels.length" x-cloak>
+          <template x-for="m in availableModels" :key="m">
+            <button type="button" @click="form.model = m" x-text="m"
+                    class="px-2 py-1 text-xs border"
+                    :class="form.model === m
+                      ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
+                      : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800'"></button>
+          </template>
+        </div>
+        <div class="text-xs text-gray-400 mt-1" x-show="!availableModels.length" x-cloak>
+          {{ t('Нажмите «Список», чтобы загрузить модели') }}
+        </div>
       </div>
     </div>
 
