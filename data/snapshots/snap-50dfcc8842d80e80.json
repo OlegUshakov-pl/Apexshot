@@ -1,0 +1,255 @@
+{
+  "id": "snap-50dfcc8842d80e80",
+  "directory": "d:/Robot_CNC/Documents",
+  "title": "ElectroCraft Motor and Drive Systems: Product Catalog, Technical Specifications, and Applications",
+  "type": "documentation",
+  "fetched_at": "2026-09-30T18:51:04Z",
+  "summary": "ElectroCraft предлагает широкий ассортимент шаговых двигателей и приводов, включая серии TorquePower™, TorquePower™ Plus, Enhanced Series, SA-Series и PRO Series. Продукция предназначена для широкого спектра применений, включая медицинское оборудование (диализные аппараты, диагностическая визуализация), промышленное видеонаблюдение, упаковку и обработку полупроводников. Техническая документация описывает характеристики, такие как крутящий момент (до 2100 oz-in), максимальная мощность драйверов (до 1600 W) и возможность кастомизации продуктов, а также подчеркивает опыт компании более 60 лет.",
+  "sections": [
+    {
+      "heading": "Disclaimer/Usage Notice",
+      "text": "This guide has been developed as a quick reference tool for ElectroCraft products. It is not intended to replace technical documentation or proper use of standards and codes in installation of product. Because of the variety of uses for the products described in this publication, those responsible for the application and use of this product must satisfy themselves that all necessary steps have been taken to ensure that each application and use meets all performance and safety requirements, including all applicable laws, regulations, codes and standards."
+    },
+    {
+      "heading": "Product Series Overview",
+      "text": "Продукция включает серии двигателей и приводов: TorquePower Series, TorquePower Plus Series, TorquePower Enhanced Series, SA-Series, PRO Series и Stepper Products. В каталоге представлены конкретные модели, такие как TPE17, TPP11, TPP23, TP23 и TP34."
+    },
+    {
+      "heading": "ElectroCraft TorquePower™ Stepper Motor Families",
+      "text": "ElectroCraft предлагает несколько линеек шаговых двигателей: TorquePower™ (Nema 23, 34 & 42, крутящий момент до 2100 oz-in), TorquePower™ Plus (Nema 11, 17, 23 & 34, крутящий момент до 1190 oz-in), и Enhanced Series (Nema 17 & 23, крутящий момент до 294 oz-in). Эти двигатели обладают высокими показателями точности шага и различными функциями, такими как герметизация и снижение излучаемого магнитного потока."
+    },
+    {
+      "heading": "ElectroCraft CompletePower™ & PRO Series Drives",
+      "text": "Драйверы ElectroCraft CompletePower™ и PRO Series имеют следующие характеристики: минимальное напряжение 11 VDC, максимальное напряжение до 80 VDC, частота коммутации до 60 kHz, и максимальную мощность до 1600 W. Они поддерживают режимы управления, включая микрошаги до 1/16."
+    }
+  ],
+  "facts": [
+    {
+      "id": "f1",
+      "claim": "Данное руководство является быстрым справочным инструментом для продукции ElectroCraft.",
+      "quote": "This guide has been developed as a quick reference tool for ElectroCraft products.",
+      "file": "Catalog_servo.pdf",
+      "confidence": 1.0,
+      "type": "verified",
+      "verified": true,
+      "quality": "ok"
+    },
+    {
+      "id": "f2",
+      "claim": "Руководство не заменяет техническую документацию или соблюдение стандартов при установке продукта.",
+      "quote": "It is not intended to replace technical documentation or proper use of standards and codes in installation of product.",
+      "file": "Catalog_servo.pdf",
+      "confidence": 1.0,
+      "type": "verified",
+      "verified": true,
+      "quality": "ok"
+    },
+    {
+      "id": "f3",
+      "claim": "ElectroCraft имеет опыт более 60 лет в разработке моторов и технологий движения.",
+      "quote": "For over 60 years, ElectroCraft has been helping engineers translate innovative ideas into reality – one reliable motor at a time. As a global specialist in custom motor and motion technology, we provide the engineering capabilities and worldwide resources you need to succeed.",
+      "file": "Catalog_servo.pdf",
+      "confidence": 1.0,
+      "type": "verified",
+      "verified": true,
+      "quality": "ok"
+    },
+    {
+      "id": "f4",
+      "claim": "В ассортименте представлены серии двигателей TorquePower, SA-Series, PRO Series и Stepper Products.",
+      "quote": "TorquePower Series, TorquePower Plus Series, TorquePower Enhanced Series, Drives SA-Series, PRO Series, Stepper Products",
+      "file": "Catalog_servo.pdf",
+      "confidence": 0.8,
+      "type": "verified",
+      "verified": false,
+      "quality": "ok"
+    },
+    {
+      "id": "f5",
+      "claim": "ElectroCraft предлагает шаговые двигатели SA-Series и PRO Series.",
+      "quote": "ElectroCraft CompletePower™ SA-Series & PRO Series Drives",
+      "file": "Catalog_servo.pdf",
+      "confidence": 1.0,
+      "type": "verified",
+      "verified": true,
+      "quality": "ok"
+    },
+    {
+      "id": "f6",
+      "claim": "В медицинских приложениях, ElectroCraft разработал кастомизированный ротор для диализного аппарата, который снизил вибрацию и шум.",
+      "quote": "The rotor was designed to eliminate the detent torque by skewing the normally straight laminations on the teeth. This patented design provides reduced vibration and noise from the motor when operated in all full, half and micro-stepping resolutions.",
+      "file": "fragment",
+      "confidence": 1.0,
+      "type": "verified",
+      "verified": true,
+      "quality": "ok"
+    },
+    {
+      "id": "f7",
+      "claim": "Для систем видеонаблюдения ElectroCraft создал сверхпрочный шаговый двигатель с увеличенным валом, который можно было установить в существующие продукты.",
+      "quote": "ElectroCraft created a stepper with a larger, more rugged shaft that could be retrofit into the customer’s products already in the field.",
+      "file": "fragment",
+      "confidence": 0.8,
+      "type": "verified",
+      "verified": false,
+      "quality": "ok"
+    },
+    {
+      "id": "f8",
+      "claim": "Типичные области применения шаговых двигателей включают медицинское оборудование, упаковку и обработку полупроводников.",
+      "quote": "Typical applications for ElectroCraft Stepper Motors: • Custom OEM applications (Our Specialty) • Packaging • Semiconductor handling and testing • Antenna positioning • Laboratory equipment • Rapid prototyping machines • Medical equipment • Dispensing",
+      "file": "fragment",
+      "confidence": 1.0,
+      "type": "verified",
+      "verified": true,
+      "quality": "ok"
+    },
+    {
+      "id": "f9",
+      "claim": "Линейка TorquePower™ имеет размеры Nema 23, 34 и 42, а крутящий момент может достигать 2100 oz-in или 1482 Ncm.",
+      "quote": "Sizes: Nema 23, 34 & 42\nTorque: up to 2100 oz-in or 1482 Ncm",
+      "file": "d:/Robot_CNC/Documents",
+      "confidence": 1.0,
+      "type": "verified",
+      "verified": true,
+      "quality": "ok"
+    },
+    {
+      "id": "f10",
+      "claim": "Модели TorquePower™ обладают функциями герметизации и снижения излучаемого магнитного потока.",
+      "quote": "Features: • Conventional stepper\n• Environmentally sealed\n• Imperial sizes\n• Housed motor reduces radiated magnetic flux",
+      "file": "d:/Robot_CNC/Documents",
+      "confidence": 0.95,
+      "type": "verified",
+      "verified": true,
+      "quality": "ok"
+    },
+    {
+      "id": "f11",
+      "claim": "Драйверы CompletePower™ и PRO Series поддерживают максимальную мощность до 1600 Вт.",
+      "quote": "Max Power (W) 240 480 144 385 800 1600",
+      "file": "d:/Robot_CNC/Documents",
+      "confidence": 1.0,
+      "type": "verified",
+      "verified": true,
+      "quality": "ok"
+    },
+    {
+      "id": "f12",
+      "claim": "Драйверы поддерживают микрошаги до 1/16.",
+      "quote": "Microstepping up to 1/16",
+      "file": "d:/Robot_CNC/Documents",
+      "confidence": 1.0,
+      "type": "verified",
+      "verified": true,
+      "quality": "ok"
+    }
+  ],
+  "highlights": [
+    {
+      "quote": "For over 60 years, ElectroCraft has been helping engineers translate innovative ideas into reality – one reliable motor at a time.",
+      "file": "Catalog_servo.pdf",
+      "reason": "Подчеркивает богатый опыт и надежность компании.",
+      "verified": true
+    },
+    {
+      "quote": "TorquePower Series, TorquePower Plus Series, TorquePower Enhanced Series, SA-Series, PRO Series, Stepper Products",
+      "file": "Catalog_servo.pdf",
+      "reason": "Перечисляет основные линейки продуктов, доступные в каталоге.",
+      "verified": false
+    },
+    {
+      "quote": "A redesigned motor from ElectroCraft improved both machine reliability and the patient experience",
+      "file": "fragment",
+      "reason": "Подчеркивает улучшение надежности и пользовательского опыта в медицинских устройствах.",
+      "verified": true
+    },
+    {
+      "quote": "By working with ElectroCraft’s engineering team to integrate in the new system, the company cut their anticipated time to market by one quarter.",
+      "file": "fragment",
+      "reason": "Демонстрирует способность компании ускорять вывод продуктов на рынок.",
+      "verified": true
+    },
+    {
+      "quote": "Don’t see exactly what you need? Have ElectroCraft build you a custom winding, stack length or fully customized motor… that’s our specialty!",
+      "file": "d:/Robot_CNC/Documents",
+      "reason": "Подчеркивает услугу по кастомизации двигателей.",
+      "verified": true
+    }
+  ],
+  "entities": {
+    "topics": [
+      "Двигатели",
+      "Приводы",
+      "Технология движения",
+      "Промышленная документация",
+      "Медицинское оборудование",
+      "Промышленное видеонаблюдение",
+      "OEM приложения",
+      "Полупроводниковая обработка"
+    ],
+    "organizations": [
+      "ElectroCraft"
+    ],
+    "people": [],
+    "technologies": [
+      "Моторы",
+      "Драйвы",
+      "Шаговые продукты",
+      "Motion Technology",
+      "TorquePower™",
+      "TorquePower™ Plus",
+      "Enhanced Series",
+      "SA-Series",
+      "PRO Series",
+      "CompletePower™",
+      "Nema 23",
+      "Nema 34",
+      "Nema 42"
+    ],
+    "locations": [],
+    "dates": [
+      "более 60 лет"
+    ]
+  },
+  "questions": [
+    "Какая серия моторов (TorquePower, SA-Series, PRO Series) лучше всего подходит для моей конкретной задачи?",
+    "Какие требования к безопасности и производительности необходимо учесть при использовании продукции ElectroCraft?",
+    "Где найти подробные технические характеристики для модели TPP23?",
+    "Какие типичные области применения шаговых двигателей ElectroCraft?",
+    "Как ElectroCraft решает проблемы надежности и шума в медицинском оборудовании?",
+    "Какие преимущества кастомизированные шаговые двигатели предлагают для систем видеонаблюдения?",
+    "Какой крутящий момент доступен для двигателей Nema 23 в линейке TorquePower™?",
+    "Какие максимальные параметры мощности и напряжения поддерживают драйверы ElectroCraft CompletePower™?",
+    "Как заказать кастомизированный двигатель ElectroCraft?"
+  ],
+  "tags": [
+    "Электроника",
+    "Двигатели",
+    "Приводы",
+    "Каталог",
+    "Промышленное оборудование",
+    "Stepper Motor",
+    "SA-Series",
+    "PRO-Series",
+    "ElectroCraft",
+    "Кастомные решения",
+    "Медицина",
+    "Промышленность"
+  ],
+  "confidence": 1.0,
+  "provider": "ollama",
+  "model": "gemma4:e4b",
+  "template_id": 2,
+  "template_name": "Documentation Snapshot",
+  "content_hash": "sha256:088dae1b5d199a121bc5b5d76e068ab6dfb5e07cf550bceb928967b5fcce3e1e",
+  "original_chars": 85882,
+  "snapshot_chars": 12878,
+  "file_count": 2,
+  "files": [
+    "Catalog_servo.pdf",
+    "series_mts.pdf"
+  ],
+  "content_truncated": true,
+  "search_text": "ElectroCraft Motor and Drive Systems: Product Catalog, Technical Specifications, and Applications ElectroCraft предлагает широкий ассортимент шаговых двигателей и приводов, включая серии TorquePower™, TorquePower™ Plus, Enhanced Series, SA-Series и PRO Series. Продукция предназначена для широкого спектра применений, включая медицинское оборудование (диализные аппараты, диагностическая визуализация), промышленное видеонаблюдение, упаковку и обработку полупроводников. Техническая документация описывает характеристики, такие как крутящий момент (до 2100 oz-in), максимальная мощность драйверов (до 1600 W) и возможность кастомизации продуктов, а также подчеркивает опыт компании более 60 лет. Электроника Двигатели Приводы Каталог Промышленное оборудование Stepper Motor SA-Series PRO-Series ElectroCraft Кастомные решения Медицина Промышленность Двигатели Приводы Технология движения Промышленная документация Медицинское оборудование Промышленное видеонаблюдение OEM приложения Полупроводниковая обработка Моторы Драйвы Шаговые продукты Motion Technology TorquePower™ TorquePower™ Plus Enhanced Series SA-Series PRO Series CompletePower™ Nema 23 Nema 34 Nema 42 Данное руководство является быстрым справочным инструментом для продукции ElectroCraft. Руководство не заменяет техническую документацию или соблюдение стандартов при установке продукта. ElectroCraft имеет опыт более 60 лет в разработке моторов и технологий движения. В ассортименте представлены серии двигателей TorquePower, SA-Series, PRO Series и Stepper Products. ElectroCraft предлагает шаговые двигатели SA-Series и PRO Series. В медицинских приложениях, ElectroCraft разработал кастомизированный ротор для диализного аппарата, который снизил вибрацию и шум. Для систем видеонаблюдения ElectroCraft создал сверхпрочный шаговый двигатель с увеличенным валом, который можно было установить в существующие продукты. Типичные области применения шаговых двигателей включают медицинское оборудование, упаковку и обработку полупроводников. Линейка TorquePower™ имеет размеры Nema 23, 34 и 42, а крутящий момент может достигать 2100 oz-in или 1482 Ncm. Модели TorquePower™ обладают функциями герметизации и снижения излучаемого магнитного потока. Драйверы CompletePower™ и PRO Series поддерживают максимальную мощность до 1600 Вт. Драйверы поддерживают микрошаги до 1/16. Какая серия моторов (TorquePower, SA-Series, PRO Series) лучше всего подходит для моей конкретной задачи? Какие требования к безопасности и производительности необходимо учесть при использовании продукции ElectroCraft? Где найти подробные технические характеристики для модели TPP23? Какие типичные области применения шаговых двигателей ElectroCraft? Как ElectroCraft решает проблемы надежности и шума в медицинском оборудовании? Какие преимущества кастомизированные шаговые двигатели предлагают для систем видеонаблюдения? Какой крутящий момент доступен для двигателей Nema 23 в линейке TorquePower™? Какие максимальные параметры мощности и напряжения поддерживают драйверы ElectroCraft CompletePower™? Как заказать кастомизированный двигатель ElectroCraft?"
+}
