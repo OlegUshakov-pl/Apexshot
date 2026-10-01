@@ -4,35 +4,35 @@
 
 {% block content %}
 <div x-data="detail('{{ snapshot_id }}')" x-init="load()" class="space-y-6">
-  <div x-show="error" x-cloak class="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3" x-text="error"></div>
+  <div x-show="error" x-cloak class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3" x-text="error"></div>
 
-  <div x-show="snap" class="bg-white shadow rounded-xl border border-gray-100 p-6 space-y-4">
+  <div x-show="snap" class="bg-white shadow border border-gray-100 p-6 space-y-4">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div class="min-w-0">
         <h1 class="text-2xl font-bold text-gray-900" x-text="snap.title || snap.snapshot_id"></h1>
         <div class="text-sm text-gray-500 mt-1" x-text="snap.directory_path"></div>
         <div class="flex flex-wrap gap-2 mt-3 text-xs text-gray-500">
-          <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800" x-text="snap.snapshot_type"></span>
-          <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium bg-gray-100 text-gray-700" x-text="snap.provider + ' / ' + snap.model"></span>
-          <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium bg-indigo-100 text-indigo-800" x-text="snap.template_name || '—'"></span>
-          <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium"
+          <span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800" x-text="snap.snapshot_type"></span>
+          <span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-gray-100 text-gray-700" x-text="snap.provider + ' / ' + snap.model"></span>
+          <span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-indigo-100 text-indigo-800" x-text="snap.template_name || '—'"></span>
+          <span class="inline-flex items-center px-3 py-1 text-sm font-medium"
                 :class="snap.confidence >= 0.75 ? 'bg-green-100 text-green-800' : (snap.confidence >= 0.5 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800')"
                 x-text="'confidence ' + (snap.confidence||0).toFixed(2)"></span>
-          <span x-show="snap.content_truncated" class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium bg-amber-100 text-amber-800">content truncated</span>
-          <span class="rounded-full px-3 py-1 text-sm" x-text="'создан ' + snap.created_at"></span>
-          <span class="rounded-full px-3 py-1 text-sm" x-text="'обновлён ' + snap.updated_at"></span>
+          <span x-show="snap.content_truncated" class="inline-flex items-center px-3 py-1 text-sm font-medium bg-amber-100 text-amber-800">content truncated</span>
+          <span class="px-3 py-1 text-sm" x-text="'создан ' + snap.created_at"></span>
+          <span class="px-3 py-1 text-sm" x-text="'обновлён ' + snap.updated_at"></span>
         </div>
       </div>
       <div class="flex gap-2">
         <a :href="'/api/snapshots/' + snap.snapshot_id + '/raw'"
-           class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Скачать JSON</a>
+           class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Скачать JSON</a>
         <button @click="remove()"
-                class="px-4 py-2 rounded-lg bg-white border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50">Удалить</button>
+                class="px-4 py-2 bg-white border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50">Удалить</button>
       </div>
     </div>
   </div>
 
-  <div x-show="snap" class="bg-white shadow rounded-xl border border-gray-100 overflow-hidden">
+  <div x-show="snap" class="bg-white shadow border border-gray-100 overflow-hidden">
     <div class="border-b border-gray-100 flex overflow-x-auto">
       <template x-for="t in tabs" :key="t.key">
         <button @click="tab = t.key"
@@ -53,7 +53,7 @@
           <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Секции</h3>
           <div class="space-y-3">
             <template x-for="(s, i) in snap.sections || []" :key="i">
-              <div class="rounded-lg bg-gray-50 border border-gray-100 p-4">
+              <div class="bg-gray-50 border border-gray-100 p-4">
                 <div class="font-medium text-gray-900" x-text="s.heading"></div>
                 <p class="text-sm text-gray-600 mt-1" x-text="s.text"></p>
               </div>
@@ -70,7 +70,7 @@
           <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Теги</h3>
           <div class="flex flex-wrap gap-2">
             <template x-for="tag in snap.tags || []" :key="tag">
-              <span class="inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-sm" x-text="tag"></span>
+              <span class="inline-flex items-center bg-gray-100 text-gray-700 px-3 py-1 text-sm" x-text="tag"></span>
             </template>
           </div>
         </div>
@@ -83,7 +83,7 @@
           <span class="text-green-600">verified: <b x-text="snap.verified_facts || 0"></b></span>
           <span class="text-amber-600">unverified: <b x-text="(snap.total_facts||0) - (snap.verified_facts||0)"></b></span>
         </div>
-        <div class="overflow-x-auto border border-gray-100 rounded-lg">
+        <div class="overflow-x-auto border border-gray-100">
           <table class="min-w-full text-sm">
             <thead class="bg-gray-50 text-left text-xs uppercase text-gray-500">
               <tr>
@@ -102,10 +102,10 @@
                   <td class="px-3 py-2" x-text="(f.confidence||0).toFixed(2)"></td>
                   <td class="px-3 py-2 text-xs" x-text="f.type"></td>
                   <td class="px-3 py-2">
-                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                    <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-medium"
                           :class="f.verified ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'"
                           x-text="f.verified ? 'verified' : 'unverified'"></span>
-                    <span x-show="f.quality === 'low_quality'" class="ml-1 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700">low_quality</span>
+                    <span x-show="f.quality === 'low_quality'" class="ml-1 inline-flex items-center px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700">low_quality</span>
                   </td>
                 </tr>
               </template>
@@ -120,10 +120,10 @@
       <!-- HIGHLIGHTS -->
       <div x-show="tab === 'highlights'" class="space-y-3">
         <template x-for="(h, i) in snap.highlights || []" :key="i">
-          <div class="rounded-lg bg-gray-50 border border-gray-100 p-4">
+          <div class="bg-gray-50 border border-gray-100 p-4">
             <div class="flex items-start justify-between gap-3">
               <p class="text-gray-800 italic" x-text="`«${h.quote}»`"></p>
-              <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap"
+              <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-medium whitespace-nowrap"
                     :class="h.verified ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'"
                     x-text="h.verified ? 'verified' : 'unverified'"></span>
             </div>
@@ -138,11 +138,11 @@
       <!-- ENTITIES -->
       <div x-show="tab === 'entities'" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <template x-for="(list, key) in snap.entities || {}" :key="key">
-          <div class="rounded-lg border border-gray-100 bg-gray-50 p-4">
+          <div class="border border-gray-100 bg-gray-50 p-4">
             <div class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2" x-text="key"></div>
             <div class="flex flex-wrap gap-1.5" x-show="(list || []).length">
               <template x-for="v in list || []" :key="v">
-                <span class="inline-flex items-center rounded-full bg-white border border-gray-200 px-2.5 py-0.5 text-xs" x-text="v"></span>
+                <span class="inline-flex items-center bg-white border border-gray-200 px-2.5 py-0.5 text-xs" x-text="v"></span>
               </template>
             </div>
             <div class="text-xs text-gray-400" x-show="!(list || []).length">—</div>
@@ -166,7 +166,7 @@
           <div class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Файлы</div>
           <div class="flex flex-wrap gap-1.5">
             <template x-for="f in snap.files || []" :key="f">
-              <span class="inline-flex items-center rounded-full bg-gray-100 text-gray-600 px-2.5 py-0.5 text-xs font-mono" x-text="f"></span>
+              <span class="inline-flex items-center bg-gray-100 text-gray-600 px-2.5 py-0.5 text-xs font-mono" x-text="f"></span>
             </template>
           </div>
         </div>
@@ -175,11 +175,11 @@
       <!-- RAW -->
       <div x-show="tab === 'raw'" class="space-y-3">
         <div class="flex gap-2">
-          <button @click="copyRaw()" class="px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Копировать</button>
-          <a :href="'/api/snapshots/' + snapshotId + '/raw'" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Скачать</a>
+          <button @click="copyRaw()" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Копировать</button>
+          <a :href="'/api/snapshots/' + snapshotId + '/raw'" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Скачать</a>
           <span class="text-xs text-gray-400 self-center" x-text="copied ? 'Скопировано' : ''"></span>
         </div>
-        <pre class="bg-gray-50 border border-gray-100 rounded-lg p-4 text-xs max-h-[32rem] overflow-auto" x-text="rawText"></pre>
+        <pre class="bg-gray-50 border border-gray-100 p-4 text-xs max-h-[32rem] overflow-auto" x-text="rawText"></pre>
       </div>
     </div>
   </div>

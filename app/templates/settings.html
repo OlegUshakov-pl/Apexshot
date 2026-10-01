@@ -9,17 +9,17 @@
   </div>
 
   <div x-show="message" x-cloak
-       class="rounded-lg text-sm px-4 py-3 border"
+       class="text-sm px-4 py-3 border"
        :class="ok ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'"
        x-text="message"></div>
 
   <!-- PROVIDER -->
-  <section class="bg-white shadow rounded-xl border border-gray-100 p-6 space-y-4">
+  <section class="bg-white shadow border border-gray-100 p-6 space-y-4">
     <h2 class="font-semibold text-gray-900">Провайдер</h2>
     <div class="grid sm:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Тип провайдера</label>
-        <select x-model="form.provider" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+        <select x-model="form.provider" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
           <option value="ollama">Ollama</option>
           <option value="lmstudio">LM Studio</option>
         </select>
@@ -27,37 +27,37 @@
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Base URL</label>
         <input x-model="form.base_url" @change="applyDefaults()"
-               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+               class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
                placeholder="http://localhost:11434">
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">API key (не обязателен)</label>
         <input x-model="form.api_key" type="password" autocomplete="off"
-               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500" placeholder="">
+               class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500" placeholder="">
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Модель</label>
         <div class="flex gap-2">
           <input x-model="form.model" list="model-list"
-                 class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500" placeholder="llama3.1:8b">
+                 class="flex-1 border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500" placeholder="llama3.1:8b">
           <datalist id="model-list">
             <template x-for="m in availableModels" :key="m"><option :value="m"></option></template>
           </datalist>
-          <button @click="fetchModels()" class="px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm hover:bg-gray-50">Список</button>
+          <button @click="fetchModels()" class="px-3 py-2 bg-white border border-gray-300 text-sm hover:bg-gray-50">Список</button>
         </div>
       </div>
     </div>
 
     <div class="flex flex-wrap items-center gap-3">
       <button @click="testConnection()" :disabled="testing"
-              class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+              class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
         <span x-show="!testing">Тест соединения</span><span x-show="testing">Проверка…</span>
       </button>
       <div class="text-sm" x-show="test">
-        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium mr-2"
+        <span class="inline-flex items-center px-3 py-1 text-xs font-medium mr-2"
               :class="test.reachable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
               x-text="test.reachable ? 'reachable' : 'unreachable'"></span>
-        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium mr-2"
+        <span class="inline-flex items-center px-3 py-1 text-xs font-medium mr-2"
               :class="test.model_available ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'"
               x-text="test.model_available ? 'model available' : 'model missing'"></span>
         <span class="text-xs text-gray-500" x-text="test.models ? `моделей: ${test.models.length}` : ''"></span>
@@ -67,40 +67,40 @@
   </section>
 
   <!-- GENERATION -->
-  <section class="bg-white shadow rounded-xl border border-gray-100 p-6 space-y-4">
+  <section class="bg-white shadow border border-gray-100 p-6 space-y-4">
     <h2 class="font-semibold text-gray-900">Параметры генерации</h2>
     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">temperature</label>
-        <input type="number" step="0.05" min="0" max="2" x-model.number="form.temperature" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+        <input type="number" step="0.05" min="0" max="2" x-model.number="form.temperature" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">top_p</label>
-        <input type="number" step="0.05" min="0" max="1" x-model.number="form.top_p" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+        <input type="number" step="0.05" min="0" max="1" x-model.number="form.top_p" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">seed</label>
-        <input type="number" x-model.number="form.seed" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+        <input type="number" x-model.number="form.seed" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">max_tokens</label>
-        <input type="number" min="100" x-model.number="form.max_tokens" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+        <input type="number" min="100" x-model.number="form.max_tokens" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">timeout, сек</label>
-        <input type="number" min="10" x-model.number="form.timeout_seconds" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+        <input type="number" min="10" x-model.number="form.timeout_seconds" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">max_input_chars</label>
-        <input type="number" min="500" step="500" x-model.number="form.max_input_chars" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+        <input type="number" min="500" step="500" x-model.number="form.max_input_chars" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">max_chunk_chars</label>
-        <input type="number" min="200" step="100" x-model.number="form.max_chunk_chars" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+        <input type="number" min="200" step="100" x-model.number="form.max_chunk_chars" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
       </div>
       <div class="flex items-end pb-2">
         <label class="flex items-center gap-2 text-sm">
-          <input type="checkbox" x-model="form.json_mode" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+          <input type="checkbox" x-model="form.json_mode" class="border-gray-300 text-blue-600 focus:ring-blue-500">
           JSON mode
         </label>
       </div>
@@ -108,21 +108,21 @@
   </section>
 
   <!-- DEFAULT TEMPLATES -->
-  <section class="bg-white shadow rounded-xl border border-gray-100 p-6 space-y-4">
+  <section class="bg-white shadow border border-gray-100 p-6 space-y-4">
     <h2 class="font-semibold text-gray-900">Активные шаблоны по типам</h2>
     <div class="grid sm:grid-cols-2 gap-4">
       <template x-for="type in types" :key="type">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1" x-text="type"></label>
           <template x-if="templatesFor(type).length">
-            <select x-model="form.default_templates[type]" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+            <select x-model="form.default_templates[type]" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
               <template x-for="t in templatesFor(type)" :key="t.id">
                 <option :value="t.id" x-text="t.name"></option>
               </template>
             </select>
           </template>
           <template x-if="!templatesFor(type).length">
-            <div class="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm px-3 py-2 flex items-center justify-between gap-2">
+            <div class="bg-amber-50 border border-amber-200 text-amber-800 text-sm px-3 py-2 flex items-center justify-between gap-2">
               <span>Нет включённых шаблонов</span>
               <a href="/templates" class="text-xs underline whitespace-nowrap">Перейти к шаблонам</a>
             </div>
@@ -134,7 +134,7 @@
 
   <div class="flex justify-end">
     <button @click="save()" :disabled="saving"
-            class="px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+            class="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
       <span x-show="!saving">Сохранить настройки</span><span x-show="saving">Сохранение…</span>
     </button>
   </div>

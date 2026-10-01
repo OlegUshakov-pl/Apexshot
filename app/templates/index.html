@@ -10,34 +10,34 @@
       <p class="text-sm text-gray-500 mt-1">Локальная библиотека сжатых машиночитаемых конспектов</p>
     </div>
     <div class="flex flex-wrap gap-2">
-      <a href="/create" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 active:bg-blue-800">Создать слепок</a>
-      <a href="/search" class="px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Открыть поиск</a>
-      <a href="/templates" class="px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Шаблоны</a>
-      <a href="/settings" class="px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Настройки</a>
+      <a href="/create" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 active:bg-blue-800">Создать слепок</a>
+      <a href="/search" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Открыть поиск</a>
+      <a href="/templates" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Шаблоны</a>
+      <a href="/settings" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Настройки</a>
     </div>
   </div>
 
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="bg-white shadow rounded-xl border border-gray-100 p-4">
+    <div class="bg-white shadow border border-gray-100 p-4">
       <div class="text-xs text-gray-500 uppercase tracking-wide">Всего слепков</div>
       <div class="text-3xl font-semibold mt-2" x-text="stats.total ?? '—'">—</div>
     </div>
-    <div class="bg-white shadow rounded-xl border border-gray-100 p-4">
+    <div class="bg-white shadow border border-gray-100 p-4">
       <div class="text-xs text-gray-500 uppercase tracking-wide">Успешных</div>
       <div class="text-3xl font-semibold mt-2 text-green-600" x-text="stats.success ?? '—'">—</div>
     </div>
-    <div class="bg-white shadow rounded-xl border border-gray-100 p-4">
+    <div class="bg-white shadow border border-gray-100 p-4">
       <div class="text-xs text-gray-500 uppercase tracking-wide">Ошибочных задач</div>
       <div class="text-3xl font-semibold mt-2 text-red-500" x-text="stats.failed ?? '—'">—</div>
     </div>
-    <div class="bg-white shadow rounded-xl border border-gray-100 p-4">
+    <div class="bg-white shadow border border-gray-100 p-4">
       <div class="text-xs text-gray-500 uppercase tracking-wide">Шаблонов</div>
       <div class="text-3xl font-semibold mt-2" x-text="stats.template_count ?? '—'">—</div>
     </div>
   </div>
 
   <div class="grid lg:grid-cols-3 gap-4">
-    <div class="bg-white shadow rounded-xl border border-gray-100 p-5 lg:col-span-1">
+    <div class="bg-white shadow border border-gray-100 p-5 lg:col-span-1">
       <h2 class="font-semibold text-gray-900 mb-3">Статус провайдера</h2>
       <template x-if="health">
         <div class="space-y-3 text-sm">
@@ -51,18 +51,18 @@
           </div>
           <div class="flex items-center justify-between">
             <span class="text-gray-500">Соединение</span>
-            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+            <span class="inline-flex items-center px-3 py-1 text-xs font-medium"
                   :class="health.provider_reachable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
                   x-text="health.provider_reachable ? 'доступен' : 'недоступен'"></span>
           </div>
           <div class="flex items-center justify-between">
             <span class="text-gray-500">Модель доступна</span>
-            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+            <span class="inline-flex items-center px-3 py-1 text-xs font-medium"
                   :class="health.model_available ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'"
                   x-text="health.model_available ? 'да' : 'нет'"></span>
           </div>
           <button @click="testProvider()" :disabled="testing"
-                  class="w-full px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+                  class="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
             <span x-show="!testing">Тест соединения</span>
             <span x-show="testing">Проверка…</span>
           </button>
@@ -72,17 +72,17 @@
       <p class="text-sm text-gray-400" x-show="!health">Загрузка…</p>
     </div>
 
-    <div class="bg-white shadow rounded-xl border border-gray-100 p-5 lg:col-span-2">
+    <div class="bg-white shadow border border-gray-100 p-5 lg:col-span-2">
       <div class="flex items-center justify-between mb-3">
         <h2 class="font-semibold text-gray-900">Последние слепки</h2>
         <a href="/search" class="text-sm text-blue-600 hover:underline">Все →</a>
       </div>
       <div class="divide-y divide-gray-100">
         <template x-for="item in recent" :key="item.snapshot_id">
-          <a :href="'/snapshots/' + item.snapshot_id" class="block py-3 hover:bg-gray-50 rounded-lg px-2 -mx-2">
+          <a :href="'/snapshots/' + item.snapshot_id" class="block py-3 hover:bg-gray-50 px-2 -mx-2">
             <div class="flex flex-wrap items-center gap-2">
               <span class="font-medium text-gray-900" x-text="item.title || item.snapshot_id"></span>
-              <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800" x-text="item.snapshot_type"></span>
+              <span class="inline-flex items-center px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800" x-text="item.snapshot_type"></span>
             </div>
             <div class="text-xs text-gray-500 mt-1 flex flex-wrap gap-3">
               <span x-text="item.directory_path"></span>
@@ -96,7 +96,7 @@
 
       <div class="mt-4 grid sm:grid-cols-3 gap-3" x-show="Object.keys(stats.by_type || {}).length">
         <template x-for="(count, type) in stats.by_type" :key="type">
-          <div class="rounded-lg bg-gray-50 border border-gray-100 px-3 py-2 text-sm flex items-center justify-between">
+          <div class="bg-gray-50 border border-gray-100 px-3 py-2 text-sm flex items-center justify-between">
             <span class="text-gray-600" x-text="type"></span>
             <span class="font-semibold" x-text="count"></span>
           </div>
@@ -158,7 +158,7 @@ function dashboard() {
     confidenceBar(v) {
       const pct = Math.round((parseFloat(v) || 0) * 100);
       const color = pct >= 75 ? 'bg-green-500' : (pct >= 50 ? 'bg-amber-500' : 'bg-red-400');
-      return `<div class="flex items-center gap-2"><div class="h-2 w-32 bg-gray-200 rounded-full overflow-hidden"><div class="h-2 rounded-full ${color}" style="width:${pct}%"></div></div><span class="text-xs text-gray-500">${(parseFloat(v)||0).toFixed(2)}</span></div>`;
+      return `<div class="flex items-center gap-2"><div class="h-2 w-32 bg-gray-200 overflow-hidden"><div class="h-2 ${color}" style="width:${pct}%"></div></div><span class="text-xs text-gray-500">${(parseFloat(v)||0).toFixed(2)}</span></div>`;
     }
   }
 }
