@@ -1,53 +1,53 @@
 {% extends "base.html" %}
-{% block title %}Поиск · AI-слепки{% endblock %}
+{% block title %}{{ t('Поиск') }} · AI-слепки{% endblock %}
 
 {% block content %}
 <div x-data="searchPage()" x-init="init()" class="space-y-6">
   <div>
-    <h1 class="text-2xl font-bold text-gray-900">Поиск по библиотеке слепков</h1>
-    <p class="text-sm text-gray-500 mt-1">SQLite FTS5 по заголовкам, фактам, тегам и вопросам слепков.</p>
+    <h1 class="text-2xl font-bold text-gray-900">{{ t('Поиск по библиотеке слепков') }}</h1>
+    <p class="text-sm text-gray-500 mt-1">{{ t('SQLite FTS5 по заголовкам, фактам, тегам и вопросам слепков.') }}</p>
   </div>
 
   <div class="bg-white shadow border border-gray-100 p-5 space-y-4">
     <div class="flex flex-col sm:flex-row gap-3">
       <input x-model="query" @input.debounce.300ms="run()" @keydown.enter="run()"
              class="flex-1 border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
-             placeholder="Например: ollama privacy RAG">
-      <button @click="run()" class="px-5 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Найти</button>
+             placeholder="{{ t('Например: ollama privacy RAG') }}">
+      <button @click="run()" class="px-5 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">{{ t('Найти') }}</button>
     </div>
 
     <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">Тип</label>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{{ t('Тип') }}</label>
         <select x-model="filters.type" @change="run()" class="w-full border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
-          <option value="">all</option>
+          <option value="">{{ t('all') }}</option>
           <option value="article">article</option><option value="documentation">documentation</option>
           <option value="news">news</option><option value="forum">forum</option>
           <option value="notes">notes</option><option value="general">general</option>
         </select>
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">Провайдер</label>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{{ t('Провайдер') }}</label>
         <select x-model="filters.provider" @change="run()" class="w-full border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
-          <option value="">all</option><option value="ollama">ollama</option><option value="lmstudio">lmstudio</option>
+          <option value="">{{ t('all') }}</option><option value="ollama">ollama</option><option value="lmstudio">lmstudio</option>
         </select>
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">Модель</label>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{{ t('Модель') }}</label>
         <select x-model="filters.model" @change="run()" class="w-full border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
-          <option value="">all</option>
+          <option value="">{{ t('all') }}</option>
           <template x-for="m in models" :key="m"><option :value="m" x-text="m"></option></template>
         </select>
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">Шаблон</label>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{{ t('Шаблон') }}</label>
         <select x-model="filters.template_id" @change="run()" class="w-full border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
-          <option value="">all</option>
+          <option value="">{{ t('all') }}</option>
           <template x-for="t in templates" :key="t.id"><option :value="t.id" x-text="t.name"></option></template>
         </select>
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">Мин. уверенность: <span x-text="filters.min_confidence"></span></label>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{{ t('Мин. уверенность:') }} <span x-text="filters.min_confidence"></span></label>
         <input type="range" min="0" max="1" step="0.05" x-model.number="filters.min_confidence" @change="run()"
                class="w-full accent-blue-600">
       </div>
@@ -55,12 +55,12 @@
 
     <div class="flex flex-wrap items-center gap-3">
       <div class="flex items-center gap-2">
-        <label class="text-xs font-medium text-gray-500">Не старше, дней</label>
+        <label class="text-xs font-medium text-gray-500">{{ t('Не старше, дней') }}</label>
         <input type="number" min="0" x-model.number="filters.max_age_days" @change="run()"
                class="w-24 border border-gray-300 px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500">
       </div>
-      <button @click="resetFilters()" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Сбросить</button>
-      <span class="text-xs text-gray-500 ml-auto" x-text="`Найдено: ${total}`"></span>
+      <button @click="resetFilters()" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">{{ t('Сбросить') }}</button>
+      <span class="text-xs text-gray-500 ml-auto" x-text="tr('Найдено: {n}', {n: total})"></span>
     </div>
   </div>
 
@@ -89,7 +89,7 @@
             </div>
             <span class="text-xs text-gray-500" x-text="(item.confidence||0).toFixed(2)"></span>
           </div>
-          <span class="text-xs text-gray-500">цитат подтверждено: <b x-text="item.verified_facts"></b>/<span x-text="item.total_facts"></span></span>
+          <span class="text-xs text-gray-500">{{ t('цитат подтверждено:') }} <b x-text="item.verified_facts"></b>/<span x-text="item.total_facts"></span></span>
           <div class="flex flex-wrap gap-1.5">
             <template x-for="tag in (item.tags || []).slice(0, 8)" :key="tag">
               <span class="inline-flex items-center bg-gray-100 text-gray-600 px-2.5 py-0.5 text-xs" x-text="tag"></span>
@@ -98,23 +98,23 @@
         </div>
 
         <div class="flex gap-2 mt-4">
-          <a :href="'/snapshots/' + item.snapshot_id" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium hover:bg-blue-700">Открыть</a>
-          <a :href="'/api/snapshots/' + item.snapshot_id + '/raw'" class="px-3 py-1.5 bg-white border border-gray-300 text-xs font-medium hover:bg-gray-50">Скачать JSON</a>
+          <a :href="'/snapshots/' + item.snapshot_id" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium hover:bg-blue-700">{{ t('Открыть') }}</a>
+          <a :href="'/api/snapshots/' + item.snapshot_id + '/raw'" class="px-3 py-1.5 bg-white border border-gray-300 text-xs font-medium hover:bg-gray-50">{{ t('Скачать JSON') }}</a>
         </div>
       </div>
     </template>
 
     <div x-show="!loading && items.length === 0" x-cloak
          class="bg-white shadow border border-gray-100 p-10 text-center text-gray-400 text-sm">
-      Ничего не найдено.<br>Попробуйте изменить запрос или фильтры.
+      {{ t('Ничего не найдено.') }}<br>{{ t('Попробуйте изменить запрос или фильтры.') }}
     </div>
-    <div x-show="loading" x-cloak class="text-sm text-gray-400 text-center py-6">Поиск…</div>
+    <div x-show="loading" x-cloak class="text-sm text-gray-400 text-center py-6">{{ t('Поиск…') }}</div>
   </div>
 
   <div x-show="total > limit" x-cloak class="flex items-center justify-center gap-3 text-sm">
     <button @click="prevPage()" :disabled="offset === 0"
             class="px-4 py-2 bg-white border border-gray-300 disabled:opacity-40 hover:bg-gray-50">Previous</button>
-    <span class="text-gray-500" x-text="`Страница ${page} из ${pages} · всего ${total}`"></span>
+    <span class="text-gray-500" x-text="tr('Страница {page} из {pages} · всего {total}', {page: page, pages: pages, total: total})"></span>
     <button @click="nextPage()" :disabled="offset + limit >= total"
             class="px-4 py-2 bg-white border border-gray-300 disabled:opacity-40 hover:bg-gray-50">Next</button>
   </div>

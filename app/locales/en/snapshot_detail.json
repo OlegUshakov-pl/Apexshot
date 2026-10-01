@@ -1,0 +1,21 @@
+{
+  "Слепок": "Snapshot",
+  "создан ": "created ",
+  "обновлён ": "updated ",
+  "Скачать JSON": "Download JSON",
+  "Удалить": "Delete",
+  "Резюме": "Summary",
+  "Секции": "Sections",
+  "Вопросы": "Questions",
+  "Теги": "Tags",
+  "Всего:": "Total:",
+  "Фактов нет": "No facts",
+  "Цитат нет": "No quotes",
+  "Файлы": "Files",
+  "Копировать": "Copy",
+  "Скачать": "Download",
+  "Скопировано": "Copied",
+  "Загрузка…": "Loading…",
+  "Удалить слепок без возможности восстановления?": "Delete this snapshot permanently?",
+  "Ошибка удаления": "Delete error"
+}

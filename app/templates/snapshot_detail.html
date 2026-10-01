@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "macros.html" import type_badge, confidence_badge, verified_badge %}
-{% block title %}Слепок · AI-слепки{% endblock %}
+{% block title %}{{ t('Слепок') }} · AI-слепки{% endblock %}
 
 {% block content %}
 <div x-data="detail('{{ snapshot_id }}')" x-init="load()" class="space-y-6">
@@ -17,17 +17,17 @@
           <span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-indigo-100 text-indigo-800" x-text="snap.template_name || '—'"></span>
           <span class="inline-flex items-center px-3 py-1 text-sm font-medium"
                 :class="snap.confidence >= 0.75 ? 'bg-green-100 text-green-800' : (snap.confidence >= 0.5 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800')"
-                x-text="'confidence ' + (snap.confidence||0).toFixed(2)"></span>
-          <span x-show="snap.content_truncated" class="inline-flex items-center px-3 py-1 text-sm font-medium bg-amber-100 text-amber-800">content truncated</span>
-          <span class="px-3 py-1 text-sm" x-text="'создан ' + snap.created_at"></span>
-          <span class="px-3 py-1 text-sm" x-text="'обновлён ' + snap.updated_at"></span>
+                x-text="tr('confidence ') + (snap.confidence||0).toFixed(2)"></span>
+          <span x-show="snap.content_truncated" class="inline-flex items-center px-3 py-1 text-sm font-medium bg-amber-100 text-amber-800">{{ t('content truncated') }}</span>
+          <span class="px-3 py-1 text-sm" x-text="tr('создан ') + snap.created_at"></span>
+          <span class="px-3 py-1 text-sm" x-text="tr('обновлён ') + snap.updated_at"></span>
         </div>
       </div>
       <div class="flex gap-2">
         <a :href="'/api/snapshots/' + snap.snapshot_id + '/raw'"
-           class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Скачать JSON</a>
+           class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">{{ t('Скачать JSON') }}</a>
         <button @click="remove()"
-                class="px-4 py-2 bg-white border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50">Удалить</button>
+                class="px-4 py-2 bg-white border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50">{{ t('Удалить') }}</button>
       </div>
     </div>
   </div>
@@ -46,11 +46,11 @@
       <!-- OVERVIEW -->
       <div x-show="tab === 'overview'" class="space-y-6">
         <div>
-          <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Резюме</h3>
+          <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">{{ t('Резюме') }}</h3>
           <p class="text-gray-700 leading-relaxed" x-text="snap.summary || '—'"></p>
         </div>
         <div x-show="(snap.sections || []).length">
-          <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Секции</h3>
+          <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">{{ t('Секции') }}</h3>
           <div class="space-y-3">
             <template x-for="(s, i) in snap.sections || []" :key="i">
               <div class="bg-gray-50 border border-gray-100 p-4">
@@ -61,13 +61,13 @@
           </div>
         </div>
         <div x-show="(snap.questions || []).length">
-          <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Вопросы</h3>
+          <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">{{ t('Вопросы') }}</h3>
           <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
             <template x-for="(q, i) in snap.questions || []" :key="i"><li x-text="q"></li></template>
           </ul>
         </div>
         <div x-show="(snap.tags || []).length">
-          <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Теги</h3>
+          <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">{{ t('Теги') }}</h3>
           <div class="flex flex-wrap gap-2">
             <template x-for="tag in snap.tags || []" :key="tag">
               <span class="inline-flex items-center bg-gray-100 text-gray-700 px-3 py-1 text-sm" x-text="tag"></span>
@@ -79,9 +79,9 @@
       <!-- FACTS -->
       <div x-show="tab === 'facts'" class="space-y-4">
         <div class="flex gap-4 text-sm text-gray-500">
-          <span>Всего: <b x-text="(snap.facts||[]).length"></b></span>
-          <span class="text-green-600">verified: <b x-text="snap.verified_facts || 0"></b></span>
-          <span class="text-amber-600">unverified: <b x-text="(snap.total_facts||0) - (snap.verified_facts||0)"></b></span>
+          <span>{{ t('Всего:') }} <b x-text="(snap.facts||[]).length"></b></span>
+          <span class="text-green-600">{{ t('verified:') }} <b x-text="snap.verified_facts || 0"></b></span>
+          <span class="text-amber-600">{{ t('unverified:') }} <b x-text="(snap.total_facts||0) - (snap.verified_facts||0)"></b></span>
         </div>
         <div class="overflow-x-auto border border-gray-100">
           <table class="min-w-full text-sm">
@@ -104,13 +104,13 @@
                   <td class="px-3 py-2">
                     <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-medium"
                           :class="f.verified ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'"
-                          x-text="f.verified ? 'verified' : 'unverified'"></span>
+                          x-text="f.verified ? tr('verified') : tr('unverified')"></span>
                     <span x-show="f.quality === 'low_quality'" class="ml-1 inline-flex items-center px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700">low_quality</span>
                   </td>
                 </tr>
               </template>
               <tr x-show="(snap.facts || []).length === 0">
-                <td colspan="7" class="px-3 py-6 text-center text-gray-400 text-sm">Фактов нет</td>
+                <td colspan="7" class="px-3 py-6 text-center text-gray-400 text-sm">{{ t('Фактов нет') }}</td>
               </tr>
             </tbody>
           </table>
@@ -125,14 +125,14 @@
               <p class="text-gray-800 italic" x-text="`«${h.quote}»`"></p>
               <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-medium whitespace-nowrap"
                     :class="h.verified ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'"
-                    x-text="h.verified ? 'verified' : 'unverified'"></span>
+                    x-text="h.verified ? tr('verified') : tr('unverified')"></span>
             </div>
             <div class="text-xs text-gray-500 mt-2 flex gap-3">
               <span x-text="h.file || ''"></span><span x-text="h.reason || ''"></span>
             </div>
           </div>
         </template>
-        <p x-show="(snap.highlights || []).length === 0" class="text-sm text-gray-400">Цитат нет</p>
+        <p x-show="(snap.highlights || []).length === 0" class="text-sm text-gray-400">{{ t('Цитат нет') }}</p>
       </div>
 
       <!-- ENTITIES -->
@@ -163,7 +163,7 @@
           <div><dt class="text-gray-400 text-xs uppercase">file_count</dt><dd x-text="snap.file_count"></dd></div>
         </dl>
         <div>
-          <div class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Файлы</div>
+          <div class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">{{ t('Файлы') }}</div>
           <div class="flex flex-wrap gap-1.5">
             <template x-for="f in snap.files || []" :key="f">
               <span class="inline-flex items-center bg-gray-100 text-gray-600 px-2.5 py-0.5 text-xs font-mono" x-text="f"></span>
@@ -175,16 +175,16 @@
       <!-- RAW -->
       <div x-show="tab === 'raw'" class="space-y-3">
         <div class="flex gap-2">
-          <button @click="copyRaw()" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Копировать</button>
-          <a :href="'/api/snapshots/' + snapshotId + '/raw'" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Скачать</a>
-          <span class="text-xs text-gray-400 self-center" x-text="copied ? 'Скопировано' : ''"></span>
+          <button @click="copyRaw()" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">{{ t('Копировать') }}</button>
+          <a :href="'/api/snapshots/' + snapshotId + '/raw'" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">{{ t('Скачать') }}</a>
+          <span class="text-xs text-gray-400 self-center" x-text="copied ? tr('Скопировано') : ''"></span>
         </div>
         <pre class="bg-gray-50 border border-gray-100 p-4 text-xs max-h-[32rem] overflow-auto" x-text="rawText"></pre>
       </div>
     </div>
   </div>
 
-  <div x-show="!snap && !error" class="text-sm text-gray-400 text-center py-10">Загрузка…</div>
+  <div x-show="!snap && !error" class="text-sm text-gray-400 text-center py-10">{{ t('Загрузка…') }}</div>
 </div>
 {% endblock %}
 
@@ -199,11 +199,11 @@ function detail(snapshotId) {
     error: '',
     copied: false,
     tabs: [
-      {key: 'overview', label: 'Overview'},
-      {key: 'facts', label: 'Facts'},
-      {key: 'highlights', label: 'Highlights'},
-      {key: 'entities', label: 'Entities'},
-      {key: 'metadata', label: 'Metadata'},
+      {key: 'overview', label: tr('Overview')},
+      {key: 'facts', label: tr('Facts')},
+      {key: 'highlights', label: tr('Highlights')},
+      {key: 'entities', label: tr('Entities')},
+      {key: 'metadata', label: tr('Metadata')},
       {key: 'raw', label: 'Raw JSON'}
     ],
     async load() {
@@ -229,12 +229,12 @@ function detail(snapshotId) {
       } catch (e) {}
     },
     async remove() {
-      if (!confirm('Удалить слепок без возможности восстановления?')) return;
+      if (!confirm(tr('Удалить слепок без возможности восстановления?'))) return;
       const res = await fetch('/api/snapshots/' + this.snapshotId, {method: 'DELETE'});
       if (res.ok) location.href = '/search';
       else {
         const data = await res.json();
-        this.error = (data.detail && data.detail.detail) || 'Ошибка удаления';
+        this.error = (data.detail && data.detail.detail) || tr('Ошибка удаления');
       }
     }
   }

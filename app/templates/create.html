@@ -1,25 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Создание · AI-слепки{% endblock %}
+{% block title %}{{ t('Создание') }} · AI-слепки{% endblock %}
 
 {% block content %}
 <div x-data="creator()" class="max-w-3xl mx-auto space-y-6">
   <div>
-    <h1 class="text-2xl font-bold text-gray-900">Создание слепка</h1>
-    <p class="text-sm text-gray-500 mt-1">Укажите локальную директорию и тип — приложение соберёт файлы, очистит текст и получит AI-слепок у локальной модели.</p>
+    <h1 class="text-2xl font-bold text-gray-900">{{ t('Создание слепка') }}</h1>
+    <p class="text-sm text-gray-500 mt-1">{{ t('Укажите локальную директорию и тип — приложение соберёт файлы, очистит текст и получит AI-слепок у локальной модели.') }}</p>
   </div>
 
   <form @submit.prevent="submit()" class="bg-white shadow border border-gray-100 p-6 space-y-4">
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="directory">Директория</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1" for="directory">{{ t('Директория') }}</label>
       <input id="directory" x-ref="directory" x-model="form.directory" @input.debounce.300ms="checkExists()"
              class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
              placeholder="/home/user/articles" required>
-      <p class="text-xs text-gray-500 mt-1">Укажите локальную папку, по которой нужно создать слепок</p>
+      <p class="text-xs text-gray-500 mt-1">{{ t('Укажите локальную папку, по которой нужно создать слепок') }}</p>
     </div>
 
     <div class="grid sm:grid-cols-3 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1" for="type">Тип слепка</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="type">{{ t('Тип слепка') }}</label>
         <select id="type" x-model="form.snapshot_type" @change="checkExists()"
                 class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
           <option value="article">article</option>
@@ -31,21 +31,21 @@
         </select>
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1" for="max_files">Макс. файлов</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="max_files">{{ t('Макс. файлов') }}</label>
         <input id="max_files" type="number" min="1" max="5000" x-model.number="form.max_files"
                class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1" for="max_chars">Лимит символов</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="max_chars">{{ t('Лимит символов') }}</label>
         <input id="max_chars" type="number" min="500" step="500" x-model.number="form.max_chars"
                class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
-               placeholder="из настроек">
-        <p class="text-xs text-gray-500 mt-1">Пусто — значение из настроек</p>
+               placeholder="{{ t('из настроек') }}">
+        <p class="text-xs text-gray-500 mt-1">{{ t('Пусто — значение из настроек') }}</p>
       </div>
     </div>
 
     <div x-show="exists" x-cloak class="bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3">
-      Для этой директории и типа уже существует слепок. При создании он будет заменен без сохранения старой версии.
+      {{ t('Для этой директории и типа уже существует слепок. При создании он будет заменен без сохранения старой версии.') }}
     </div>
 
     <div x-show="error" x-cloak class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3" x-text="error"></div>
@@ -53,17 +53,17 @@
     <div class="flex gap-3">
       <button type="submit" :disabled="busy"
               class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50">
-        <span x-show="!busy">Создать слепок</span>
-        <span x-show="busy">Выполняется…</span>
+        <span x-show="!busy">{{ t('Создать слепок') }}</span>
+        <span x-show="busy">{{ t('Выполняется…') }}</span>
       </button>
       <button type="button" @click="reset()" x-show="jobId || result"
-              class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Сбросить</button>
+              class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">{{ t('Сбросить') }}</button>
     </div>
   </form>
 
   <div x-show="jobId" x-cloak class="bg-white shadow border border-gray-100 p-6 space-y-4">
     <div class="flex items-center justify-between">
-      <h2 class="font-semibold text-gray-900">Прогресс</h2>
+      <h2 class="font-semibold text-gray-900">{{ t('Прогресс') }}</h2>
       <span class="inline-flex items-center px-3 py-1 text-xs font-medium"
             :class="statusClass()" x-text="job ? job.status : 'pending'"></span>
     </div>
@@ -72,7 +72,7 @@
            :style="`width: ${job ? job.progress : 0}%`"></div>
     </div>
     <div class="flex items-center justify-between text-sm text-gray-600">
-      <span x-text="job ? job.step_label : 'Очередь'"></span>
+      <span x-text="job ? job.step_label : tr('Очередь')"></span>
       <span x-text="(job ? job.progress : 0) + '%'"></span>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-gray-500">
@@ -84,9 +84,9 @@
       </template>
     </div>
     <div x-show="job && job.error" x-cloak class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
-      <div class="font-medium mb-1">Ошибка генерации</div>
+      <div class="font-medium mb-1">{{ t('Ошибка генерации') }}</div>
       <div x-text="job && job.error" class="whitespace-pre-wrap"></div>
-      <button @click="submit()" class="mt-3 px-4 py-2 bg-red-600 text-white text-xs font-medium hover:bg-red-700">Повторить</button>
+      <button @click="submit()" class="mt-3 px-4 py-2 bg-red-600 text-white text-xs font-medium hover:bg-red-700">{{ t('Повторить') }}</button>
     </div>
   </div>
 
@@ -101,26 +101,26 @@
     <p class="text-sm text-gray-600" x-text="result.summary"></p>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
       <div class="bg-gray-50 border border-gray-100 px-3 py-2">
-        <div class="text-xs text-gray-500">Файлов</div>
+        <div class="text-xs text-gray-500">{{ t('Файлов') }}</div>
         <div class="font-semibold" x-text="result.file_count"></div>
       </div>
       <div class="bg-gray-50 border border-gray-100 px-3 py-2">
-        <div class="text-xs text-gray-500">Размер слепка</div>
-        <div class="font-semibold" x-text="result.snapshot_chars + ' симв.'"></div>
+        <div class="text-xs text-gray-500">{{ t('Размер слепка') }}</div>
+        <div class="font-semibold" x-text="result.snapshot_chars + ' ' + tr('симв.')"></div>
       </div>
       <div class="bg-gray-50 border border-gray-100 px-3 py-2">
-        <div class="text-xs text-gray-500">Проверено</div>
+        <div class="text-xs text-gray-500">{{ t('Проверено') }}</div>
         <div class="font-semibold text-green-600" x-text="result.verified_facts"></div>
       </div>
       <div class="bg-gray-50 border border-gray-100 px-3 py-2">
-        <div class="text-xs text-gray-500">Не подтверждено</div>
+        <div class="text-xs text-gray-500">{{ t('Не подтверждено') }}</div>
         <div class="font-semibold text-amber-600" x-text="(result.total_facts || 0) - (result.verified_facts || 0)"></div>
       </div>
     </div>
     <div class="flex flex-wrap gap-3">
-      <a :href="'/snapshots/' + result.snapshot_id" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Открыть</a>
-      <a :href="'/api/snapshots/' + result.snapshot_id + '/raw'" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Скачать JSON</a>
-      <a href="/search" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Искать</a>
+      <a :href="'/snapshots/' + result.snapshot_id" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">{{ t('Открыть') }}</a>
+      <a :href="'/api/snapshots/' + result.snapshot_id + '/raw'" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">{{ t('Скачать JSON') }}</a>
+      <a href="/search" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">{{ t('Искать') }}</a>
     </div>
   </div>
 </div>
@@ -133,9 +133,9 @@ function creator() {
   return {
     form: {directory: '', snapshot_type: 'article', max_files: 200, max_chars: null},
     steps: ORDER.map(k => ({key: k, label: {
-      queued:'Очередь', checking_directory:'Проверка директории', collecting_files:'Сбор файлов',
-      extracting_text:'Очистка текста', generating:'Генерация', parsing_json:'Проверка JSON',
-      verifying_quotes:'Проверка цитат', saving:'Сохранение', done:'Готово'}[k]})),
+      queued: tr('Очередь'), checking_directory: tr('Проверка директории'), collecting_files: tr('Сбор файлов'),
+      extracting_text: tr('Очистка текста'), generating: tr('Генерация'), parsing_json: tr('Проверка JSON'),
+      verifying_quotes: tr('Проверка цитат'), saving: tr('Сохранение'), done: tr('Готово')}[k]})),
     exists: false,
     busy: false,
     error: '',
@@ -156,7 +156,7 @@ function creator() {
       this.result = null;
       this.job = null;
       if (!this.form.directory || !this.form.directory.trim()) {
-        this.error = 'Укажите директорию'; return;
+        this.error = tr('Укажите директорию'); return;
       }
       this.busy = true;
       try {
@@ -172,7 +172,7 @@ function creator() {
         });
         const data = await res.json();
         if (!res.ok) {
-          this.error = (data.detail && data.detail.detail) || data.detail || 'Ошибка создания';
+          this.error = (data.detail && data.detail.detail) || data.detail || tr('Ошибка создания');
           this.busy = false;
           return;
         }
@@ -180,7 +180,7 @@ function creator() {
         this.busy = false;
         this.poll();
       } catch (e) {
-        this.error = 'Ошибка запроса: ' + e;
+        this.error = tr('Ошибка запроса:') + ' ' + e;
         this.busy = false;
       }
     },

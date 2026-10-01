@@ -1,0 +1,22 @@
+{
+  "Поиск": "Search",
+  "Поиск по библиотеке слепков": "Search the snapshot library",
+  "SQLite FTS5 по заголовкам, фактам, тегам и вопросам слепков.": "SQLite FTS5 over snapshot titles, facts, tags and questions.",
+  "Например: ollama privacy RAG": "Example: ollama privacy RAG",
+  "Найти": "Find",
+  "Тип": "Type",
+  "Провайдер": "Provider",
+  "Модель": "Model",
+  "Шаблон": "Template",
+  "Мин. уверенность:": "Min. confidence:",
+  "Не старше, дней": "Max age, days",
+  "Сбросить": "Reset",
+  "Найдено: {n}": "Found: {n}",
+  "цитат подтверждено:": "verified quotes:",
+  "Открыть": "Open",
+  "Скачать JSON": "Download JSON",
+  "Ничего не найдено.": "Nothing found.",
+  "Попробуйте изменить запрос или фильтры.": "Try changing your query or filters.",
+  "Поиск…": "Searching…",
+  "Страница {page} из {pages} · всего {total}": "Page {page} of {pages} · total {total}"
+}

@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Шаблоны · AI-слепки{% endblock %}
+{% block title %}{{ t('Шаблоны') }} · AI-слепки{% endblock %}
 
 {% block content %}
 <div x-data="templatesPage()" x-init="load()" class="space-y-6">
   <div class="flex flex-wrap items-end justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Шаблоны слепков</h1>
-      <p class="text-sm text-gray-500 mt-1">Каждый шаблон задаёт system/user промпты и JSON-схему для своего типа слепка.</p>
+      <h1 class="text-2xl font-bold text-gray-900">{{ t('Шаблоны слепков') }}</h1>
+      <p class="text-sm text-gray-500 mt-1">{{ t('Каждый шаблон задаёт system/user промпты и JSON-схему для своего типа слепка.') }}</p>
     </div>
     <button @click="openCreate()"
-            class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Новый шаблон</button>
+            class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">{{ t('Новый шаблон') }}</button>
   </div>
 
   <div x-show="error" x-cloak class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3" x-text="error"></div>
@@ -20,12 +20,12 @@
       <table class="min-w-full text-sm">
         <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
           <tr>
-            <th class="px-4 py-3">Название</th>
-            <th class="px-4 py-3">Тип</th>
-            <th class="px-4 py-3">Статус</th>
-            <th class="px-4 py-3">По умолчанию</th>
-            <th class="px-4 py-3">Обновлён</th>
-            <th class="px-4 py-3 text-right">Действия</th>
+            <th class="px-4 py-3">{{ t('Название') }}</th>
+            <th class="px-4 py-3">{{ t('Тип') }}</th>
+            <th class="px-4 py-3">{{ t('Статус') }}</th>
+            <th class="px-4 py-3">{{ t('По умолчанию') }}</th>
+            <th class="px-4 py-3">{{ t('Обновлён') }}</th>
+            <th class="px-4 py-3 text-right">{{ t('Действия') }}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -41,25 +41,25 @@
               <td class="px-4 py-3">
                 <button @click="toggle(t)" class="inline-flex items-center px-3 py-1 text-xs font-medium"
                         :class="t.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'"
-                        x-text="t.enabled ? 'enabled' : 'disabled'"></button>
+                        x-text="t.enabled ? tr('enabled') : tr('disabled')"></button>
               </td>
               <td class="px-4 py-3">
-                <span x-show="isActive(t)" class="inline-flex items-center px-3 py-1 text-xs font-medium bg-indigo-100 text-indigo-800">default</span>
+                <span x-show="isActive(t)" class="inline-flex items-center px-3 py-1 text-xs font-medium bg-indigo-100 text-indigo-800">{{ t('default') }}</span>
                 <button x-show="!isActive(t) && t.enabled" @click="setDefault(t)"
-                        class="text-xs text-blue-600 hover:underline">сделать default</button>
+                        class="text-xs text-blue-600 hover:underline">{{ t('сделать default') }}</button>
               </td>
               <td class="px-4 py-3 text-xs text-gray-500" x-text="t.updated_at"></td>
               <td class="px-4 py-3">
                 <div class="flex justify-end gap-2 text-xs">
-                  <button @click="openEdit(t)" class="px-2.5 py-1.5 border border-gray-300 hover:bg-white">Edit</button>
-                  <button @click="openTest(t)" class="px-2.5 py-1.5 border border-gray-300 hover:bg-white">Test</button>
-                  <button @click="remove(t)" class="px-2.5 py-1.5 border border-red-200 text-red-600 hover:bg-red-50">Delete</button>
+                  <button @click="openEdit(t)" class="px-2.5 py-1.5 border border-gray-300 hover:bg-white">{{ t('Edit') }}</button>
+                  <button @click="openTest(t)" class="px-2.5 py-1.5 border border-gray-300 hover:bg-white">{{ t('Test') }}</button>
+                  <button @click="remove(t)" class="px-2.5 py-1.5 border border-red-200 text-red-600 hover:bg-red-50">{{ t('Delete') }}</button>
                 </div>
               </td>
             </tr>
           </template>
           <tr x-show="items.length === 0 && !loading">
-            <td colspan="6" class="px-4 py-8 text-center text-gray-400 text-sm">Шаблонов нет</td>
+            <td colspan="6" class="px-4 py-8 text-center text-gray-400 text-sm">{{ t('Шаблонов нет') }}</td>
           </tr>
         </tbody>
       </table>
@@ -70,18 +70,18 @@
   <div x-show="editor.open" x-cloak class="fixed inset-0 z-50 flex items-start justify-center bg-gray-900/40 p-4 overflow-y-auto" @keydown.escape.window="editor.open=false">
     <div class="bg-white shadow-xl w-full max-w-3xl my-8 border border-gray-200">
       <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h2 class="font-semibold text-gray-900" x-text="editor.id ? 'Редактирование шаблона' : 'Новый шаблон'"></h2>
+        <h2 class="font-semibold text-gray-900" x-text="editor.id ? tr('Редактирование шаблона') : tr('Новый шаблон')"></h2>
         <button @click="editor.open=false" class="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
       </div>
       <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
         <div x-show="editorWarning()" x-cloak class="bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3" x-text="editorWarning()"></div>
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Название</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('Название') }}</label>
             <input x-model="editor.name" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Тип слепка</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('Тип слепка') }}</label>
             <select x-model="editor.snapshot_type" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
               <option value="article">article</option><option value="documentation">documentation</option>
               <option value="news">news</option><option value="forum">forum</option>
@@ -90,30 +90,30 @@
           </div>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Описание</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('Описание') }}</label>
           <input x-model="editor.description" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">System prompt</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('System prompt') }}</label>
           <textarea x-model="editor.system_prompt" rows="6" class="w-full border border-gray-300 px-3 py-2 font-mono text-xs focus:ring-2 focus:ring-blue-500"></textarea>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">User prompt</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('User prompt') }}</label>
           <textarea x-model="editor.user_prompt" rows="8" class="w-full border border-gray-300 px-3 py-2 font-mono text-xs focus:ring-2 focus:ring-blue-500"></textarea>
-          <p class="text-xs text-gray-500 mt-1">Плейсхолдеры: {type} {directory} {files} {text} {schema} {chunk_index} {chunk_count} {partials}</p>
+          <p class="text-xs text-gray-500 mt-1">{{ t('Плейсхолдеры: {type} {directory} {files} {text} {schema} {chunk_index} {chunk_count} {partials}') }}</p>
         </div>
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Chunk prompt</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('Chunk prompt') }}</label>
             <textarea x-model="editor.chunk_user_prompt" rows="6" class="w-full border border-gray-300 px-3 py-2 font-mono text-xs focus:ring-2 focus:ring-blue-500"></textarea>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Merge prompt</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('Merge prompt') }}</label>
             <textarea x-model="editor.merge_user_prompt" rows="6" class="w-full border border-gray-300 px-3 py-2 font-mono text-xs focus:ring-2 focus:ring-blue-500"></textarea>
           </div>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">JSON-схема (schema_json)</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('JSON-схема (schema_json)') }}</label>
           <textarea x-model="editor.schema_json" rows="8" class="w-full border border-gray-300 px-3 py-2 font-mono text-xs focus:ring-2 focus:ring-blue-500"></textarea>
         </div>
         <div class="flex flex-wrap gap-6">
@@ -123,8 +123,8 @@
         <div x-show="editor.error" x-cloak class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3" x-text="editor.error"></div>
       </div>
       <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
-        <button @click="editor.open=false" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Отмена</button>
-        <button @click="save()" :disabled="editor.saving" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">Сохранить</button>
+        <button @click="editor.open=false" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">{{ t('Отмена') }}</button>
+        <button @click="save()" :disabled="editor.saving" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">{{ t('Сохранить') }}</button>
       </div>
     </div>
   </div>
@@ -133,22 +133,22 @@
   <div x-show="tester.open" x-cloak class="fixed inset-0 z-50 flex items-start justify-center bg-gray-900/40 p-4 overflow-y-auto">
     <div class="bg-white shadow-xl w-full max-w-3xl my-8 border border-gray-200">
       <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h2 class="font-semibold text-gray-900">Проверка шаблона</h2>
+        <h2 class="font-semibold text-gray-900">{{ t('Проверка шаблона') }}</h2>
         <button @click="tester.open=false" class="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
       </div>
       <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Образец текста</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('Образец текста') }}</label>
           <textarea x-model="tester.sample_text" rows="5" class="w-full border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                    placeholder="Ollama позволяет запускать локальные LLM прямо на компьютере."></textarea>
+                    placeholder="{{ t('Ollama позволяет запускать локальные LLM прямо на компьютере.') }}"></textarea>
         </div>
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Директория</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('Директория') }}</label>
             <input x-model="tester.directory" class="w-full border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Тип</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('Тип') }}</label>
             <select x-model="tester.type" class="w-full border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
               <option value="article">article</option><option value="documentation">documentation</option>
               <option value="news">news</option><option value="forum">forum</option>
@@ -160,25 +160,25 @@
           <div class="flex items-center gap-2 mb-2">
             <span class="inline-flex items-center px-3 py-1 text-xs font-medium"
                   :class="tester.result && tester.result.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-                  x-text="tester.result && tester.result.success ? 'успешно' : 'ошибка'"></span>
+                  x-text="tester.result && tester.result.success ? tr('успешно') : tr('ошибка')"></span>
             <span class="text-xs text-gray-500" x-text="tester.result && tester.result.error ? tester.result.error : ''"></span>
           </div>
           <div class="grid md:grid-cols-2 gap-4">
             <div>
-              <div class="text-xs font-medium text-gray-500 mb-1">Raw output</div>
+              <div class="text-xs font-medium text-gray-500 mb-1">{{ t('Raw output') }}</div>
               <pre class="bg-gray-50 border border-gray-100 p-3 text-xs max-h-72 overflow-auto" x-text="tester.result && tester.result.raw_output"></pre>
             </div>
             <div>
-              <div class="text-xs font-medium text-gray-500 mb-1">Parsed JSON</div>
+              <div class="text-xs font-medium text-gray-500 mb-1">{{ t('Parsed JSON') }}</div>
               <pre class="bg-gray-50 border border-gray-100 p-3 text-xs max-h-72 overflow-auto" x-text="tester.result && tester.result.parsed_json ? JSON.stringify(tester.result.parsed_json, null, 2) : '—'"></pre>
             </div>
           </div>
         </div>
       </div>
       <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
-        <button @click="tester.open=false" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Закрыть</button>
+        <button @click="tester.open=false" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">{{ t('Закрыть') }}</button>
         <button @click="runTest()" :disabled="tester.running" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
-          <span x-show="!tester.running">Проверить</span><span x-show="tester.running">Вызов модели…</span>
+          <span x-show="!tester.running">{{ t('Проверить') }}</span><span x-show="tester.running">{{ t('Вызов модели…') }}</span>
         </button>
       </div>
     </div>
@@ -205,7 +205,7 @@ function templatesPage() {
         ]);
         this.items = t;
         this.settings = s;
-      } catch (e) { this.error = 'Не удалось загрузить шаблоны: ' + e; }
+      } catch (e) { this.error = tr('Не удалось загрузить шаблоны: ') + e; }
       this.loading = false;
     },
     isActive(t) {
@@ -222,7 +222,7 @@ function templatesPage() {
     editorWarning() {
       if (!this.editor.id || !this.settings || !this.settings.default_templates) return '';
       const active = this.settings.default_templates[this.editor.snapshot_type];
-      if (active === this.editor.id) return `Этот шаблон используется как активный для типа ${this.editor.snapshot_type}`;
+      if (active === this.editor.id) return tr('Этот шаблон используется как активный для типа {type}', {type: this.editor.snapshot_type});
       return '';
     },
     async save() {
@@ -244,14 +244,14 @@ function templatesPage() {
         });
         const data = await res.json();
         if (!res.ok) {
-          this.editor.error = (data.detail && data.detail.detail) || data.detail || 'Ошибка сохранения';
+          this.editor.error = (data.detail && data.detail.detail) || data.detail || tr('Ошибка сохранения');
         } else {
           this.editor.open = false;
-          this.notice = 'Шаблон сохранён';
+          this.notice = tr('Шаблон сохранён');
           setTimeout(() => this.notice = '', 3000);
           await this.load();
         }
-      } catch (e) { this.editor.error = 'Ошибка запроса: ' + e; }
+      } catch (e) { this.editor.error = tr('Ошибка запроса: ') + e; }
       this.editor.saving = false;
     },
     async toggle(t) {
@@ -262,28 +262,28 @@ function templatesPage() {
       const res = await fetch(`/api/templates/${t.id}/default`, {method:'POST'});
       const data = await res.json();
       if (res.ok) {
-        this.notice = 'Шаблон назначен по умолчанию';
+        this.notice = tr('Шаблон назначен по умолчанию');
         setTimeout(() => this.notice = '', 3000);
         await this.load();
       } else {
-        this.error = (data.detail && data.detail.detail) || 'Ошибка';
+        this.error = (data.detail && data.detail.detail) || tr('Ошибка');
       }
     },
     async remove(t) {
-      if (!confirm(`Удалить шаблон «${t.name}»?`)) return;
+      if (!confirm(tr('Удалить шаблон «{name}»?', {name: t.name}))) return;
       const res = await fetch('/api/templates/' + t.id, {method:'DELETE'});
       const data = await res.json();
       if (res.ok) {
-        this.notice = 'Шаблон удалён';
+        this.notice = tr('Шаблон удалён');
         if (data.warnings && data.warnings.length) this.error = data.warnings.join('; ');
         setTimeout(() => { this.notice = ''; this.error = ''; }, 4000);
         await this.load();
       } else {
-        this.error = (data.detail && data.detail.detail) || 'Ошибка удаления';
+        this.error = (data.detail && data.detail.detail) || tr('Ошибка удаления');
       }
     },
     openTest(t) {
-      this.tester = {open:true, id:t.id, sample_text:'Ollama позволяет запускать локальные LLM прямо на компьютере и сохранять приватность данных.',
+      this.tester = {open:true, id:t.id, sample_text: tr('Ollama позволяет запускать локальные LLM прямо на компьютере и сохранять приватность данных.'),
         directory:'/tmp/test', type:t.snapshot_type, running:false, result:null};
     },
     async runTest() {

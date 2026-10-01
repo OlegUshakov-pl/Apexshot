@@ -1,81 +1,81 @@
 {% extends "base.html" %}
 {% from "macros.html" import type_badge, confidence_bar %}
-{% block title %}Главная · AI-слепки{% endblock %}
+{% block title %}{{ t('Главная') }} · AI-слепки{% endblock %}
 
 {% block content %}
 <div x-data="dashboard()" x-init="load()" class="space-y-6">
   <div class="flex flex-wrap items-end justify-between gap-4">
     <div>
       <h1 class="text-2xl font-bold text-gray-900">AI-слепки</h1>
-      <p class="text-sm text-gray-500 mt-1">Локальная библиотека сжатых машиночитаемых конспектов</p>
+      <p class="text-sm text-gray-500 mt-1">{{ t('Локальная библиотека сжатых машиночитаемых конспектов') }}</p>
     </div>
     <div class="flex flex-wrap gap-2">
-      <a href="/create" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 active:bg-blue-800">Создать слепок</a>
-      <a href="/search" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Открыть поиск</a>
-      <a href="/templates" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Шаблоны</a>
-      <a href="/settings" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">Настройки</a>
+      <a href="/create" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 active:bg-blue-800">{{ t('Создать слепок') }}</a>
+      <a href="/search" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">{{ t('Открыть поиск') }}</a>
+      <a href="/templates" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">{{ t('Шаблоны') }}</a>
+      <a href="/settings" class="px-4 py-2 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50">{{ t('Настройки') }}</a>
     </div>
   </div>
 
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="bg-white shadow border border-gray-100 p-4">
-      <div class="text-xs text-gray-500 uppercase tracking-wide">Всего слепков</div>
+      <div class="text-xs text-gray-500 uppercase tracking-wide">{{ t('Всего слепков') }}</div>
       <div class="text-3xl font-semibold mt-2" x-text="stats.total ?? '—'">—</div>
     </div>
     <div class="bg-white shadow border border-gray-100 p-4">
-      <div class="text-xs text-gray-500 uppercase tracking-wide">Успешных</div>
+      <div class="text-xs text-gray-500 uppercase tracking-wide">{{ t('Успешных') }}</div>
       <div class="text-3xl font-semibold mt-2 text-green-600" x-text="stats.success ?? '—'">—</div>
     </div>
     <div class="bg-white shadow border border-gray-100 p-4">
-      <div class="text-xs text-gray-500 uppercase tracking-wide">Ошибочных задач</div>
+      <div class="text-xs text-gray-500 uppercase tracking-wide">{{ t('Ошибочных задач') }}</div>
       <div class="text-3xl font-semibold mt-2 text-red-500" x-text="stats.failed ?? '—'">—</div>
     </div>
     <div class="bg-white shadow border border-gray-100 p-4">
-      <div class="text-xs text-gray-500 uppercase tracking-wide">Шаблонов</div>
+      <div class="text-xs text-gray-500 uppercase tracking-wide">{{ t('Шаблонов') }}</div>
       <div class="text-3xl font-semibold mt-2" x-text="stats.template_count ?? '—'">—</div>
     </div>
   </div>
 
   <div class="grid lg:grid-cols-3 gap-4">
     <div class="bg-white shadow border border-gray-100 p-5 lg:col-span-1">
-      <h2 class="font-semibold text-gray-900 mb-3">Статус провайдера</h2>
+      <h2 class="font-semibold text-gray-900 mb-3">{{ t('Статус провайдера') }}</h2>
       <template x-if="health">
         <div class="space-y-3 text-sm">
           <div class="flex items-center justify-between">
-            <span class="text-gray-500">Провайдер</span>
+            <span class="text-gray-500">{{ t('Провайдер') }}</span>
             <span class="font-medium" x-text="health.provider"></span>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-gray-500">Модель</span>
-            <span class="font-medium" x-text="health.model || 'не задана'"></span>
+            <span class="text-gray-500">{{ t('Модель') }}</span>
+            <span class="font-medium" x-text="health.model || tr('не задана')"></span>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-gray-500">Соединение</span>
+            <span class="text-gray-500">{{ t('Соединение') }}</span>
             <span class="inline-flex items-center px-3 py-1 text-xs font-medium"
                   :class="health.provider_reachable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-                  x-text="health.provider_reachable ? 'доступен' : 'недоступен'"></span>
+                  x-text="health.provider_reachable ? tr('доступен') : tr('недоступен')"></span>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-gray-500">Модель доступна</span>
+            <span class="text-gray-500">{{ t('Модель доступна') }}</span>
             <span class="inline-flex items-center px-3 py-1 text-xs font-medium"
                   :class="health.model_available ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'"
-                  x-text="health.model_available ? 'да' : 'нет'"></span>
+                  x-text="health.model_available ? tr('да') : tr('нет')"></span>
           </div>
           <button @click="testProvider()" :disabled="testing"
                   class="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
-            <span x-show="!testing">Тест соединения</span>
-            <span x-show="testing">Проверка…</span>
+            <span x-show="!testing">{{ t('Тест соединения') }}</span>
+            <span x-show="testing">{{ t('Проверка…') }}</span>
           </button>
           <p class="text-xs" :class="testMsgOk ? 'text-green-600' : 'text-red-500'" x-text="testMsg" x-show="testMsg"></p>
         </div>
       </template>
-      <p class="text-sm text-gray-400" x-show="!health">Загрузка…</p>
+      <p class="text-sm text-gray-400" x-show="!health">{{ t('Загрузка…') }}</p>
     </div>
 
     <div class="bg-white shadow border border-gray-100 p-5 lg:col-span-2">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="font-semibold text-gray-900">Последние слепки</h2>
-        <a href="/search" class="text-sm text-blue-600 hover:underline">Все →</a>
+        <h2 class="font-semibold text-gray-900">{{ t('Последние слепки') }}</h2>
+        <a href="/search" class="text-sm text-blue-600 hover:underline">{{ t('Все') }} →</a>
       </div>
       <div class="divide-y divide-gray-100">
         <template x-for="item in recent" :key="item.snapshot_id">
@@ -91,7 +91,7 @@
             <div class="mt-2"><template x-html="confidenceBar(item.confidence)"></template></div>
           </a>
         </template>
-        <p class="text-sm text-gray-400 py-4" x-show="recent.length === 0 && !loading">Слепков пока нет. Создайте первый.</p>
+        <p class="text-sm text-gray-400 py-4" x-show="recent.length === 0 && !loading">{{ t('Слепков пока нет. Создайте первый.') }}</p>
       </div>
 
       <div class="mt-4 grid sm:grid-cols-3 gap-3" x-show="Object.keys(stats.by_type || {}).length">
@@ -145,13 +145,13 @@ function dashboard() {
         }).then(r => r.json());
         this.testMsgOk = res.reachable;
         this.testMsg = res.reachable
-          ? `Доступно моделей: ${res.models.length}` + (res.model_available ? ', выбранная модель найдена' : ', выбранная модель не найдена')
-          : (res.error || 'Провайдер недоступен');
+          ? tr('Доступно моделей: {n}', {n: res.models.length}) + (res.model_available ? ', ' + tr('выбранная модель найдена') : ', ' + tr('выбранная модель не найдена'))
+          : (res.error || tr('Провайдер недоступен'));
         const h = await fetch('/api/health').then(r => r.json());
         this.health = h;
       } catch (e) {
         this.testMsgOk = false;
-        this.testMsg = 'Ошибка проверки: ' + e;
+        this.testMsg = tr('Ошибка проверки') + ': ' + e;
       }
       this.testing = false;
     },
