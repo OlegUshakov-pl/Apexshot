@@ -40,7 +40,7 @@
   "Проверить": "Sprawdź",
   "Вызов модели…": "Wywoływanie modelu…",
   "Не удалось загрузить шаблоны: ": "Nie udało się załadować szablonów: ",
-  "Этот шаблон используется как активный для типа {type}": "Ten szablon jest aktywnym domyślnym dla typu {type}",
+  "Этот шаблон используется как активный для типа {type}": "Ten szablon jest używany jako aktywny dla typu {type}",
   "Ошибка сохранения": "Błąd zapisu",
   "Шаблон сохранён": "Szablon zapisany",
   "Ошибка запроса: ": "Błąd żądania: ",

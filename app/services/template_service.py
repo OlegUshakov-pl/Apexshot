@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any, Optional
 
-from .. import config, database
+from .. import config, database, i18n
 from ..schemas import TemplateIn, TemplateOut
 
 
@@ -31,22 +31,25 @@ def _row_to_out(row: Any) -> TemplateOut:
 
 def _validate(payload: TemplateIn) -> None:
     if not payload.name.strip():
-        raise TemplateError("Название шаблона не может быть пустым")
+        raise TemplateError(i18n.t("Название шаблона не может быть пустым"))
     if payload.snapshot_type not in config.SNAPSHOT_TYPES:
         raise TemplateError(
-            f"Недопустимый тип слепка: {payload.snapshot_type}. "
-            f"Допустимые: {', '.join(config.SNAPSHOT_TYPES)}"
+            i18n.t(
+                "Недопустимый тип слепка: {type}. Допустимые: {types}",
+                type=payload.snapshot_type,
+                types=", ".join(config.SNAPSHOT_TYPES),
+            )
         )
     if not payload.system_prompt.strip():
-        raise TemplateError("system prompt не может быть пустым")
+        raise TemplateError(i18n.t("system prompt не может быть пустым"))
     if not payload.user_prompt.strip():
-        raise TemplateError("user prompt не может быть пустым")
+        raise TemplateError(i18n.t("user prompt не может быть пустым"))
     try:
         parsed = json.loads(payload.template_schema or "{}")
     except json.JSONDecodeError as exc:
-        raise TemplateError(f"schema_json — не валидный JSON: {exc}") from exc
+        raise TemplateError(i18n.t("schema_json — не валидный JSON: {error}", error=exc)) from exc
     if not isinstance(parsed, dict):
-        raise TemplateError("schema_json должен быть JSON-объектом")
+        raise TemplateError(i18n.t("schema_json должен быть JSON-объектом"))
 
 
 def list_templates(
@@ -166,7 +169,7 @@ def delete_template(template_id: int) -> bool:
 def set_default(template_id: int, snapshot_type: Optional[str] = None) -> None:
     template = get_template(template_id)
     if not template:
-        raise TemplateError("Шаблон не найден")
+        raise TemplateError(i18n.t("Шаблон не найден"))
     type_key = snapshot_type or template.snapshot_type
     with database.db() as conn:
         conn.execute(
@@ -236,6 +239,9 @@ def usage_warnings(template: TemplateOut) -> list[str]:
     active_id = _active_template_id(template.snapshot_type)
     if active_id == template.id:
         warnings.append(
-            f"Этот шаблон используется как активный для типа {template.snapshot_type}"
+            i18n.t(
+                "Этот шаблон используется как активный для типа {type}",
+                type=template.snapshot_type,
+            )
         )
     return warnings

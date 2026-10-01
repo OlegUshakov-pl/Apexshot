@@ -28,7 +28,7 @@
   "Проверить": "Run",
   "Вызов модели…": "Calling model…",
   "Не удалось загрузить шаблоны: ": "Failed to load templates: ",
-  "Этот шаблон используется как активный для типа {type}": "This template is the active default for type {type}",
+  "Этот шаблон используется как активный для типа {type}": "This template is used as the active one for type {type}",
   "Ошибка сохранения": "Save error",
   "Шаблон сохранён": "Template saved",
   "Ошибка запроса: ": "Request error: ",

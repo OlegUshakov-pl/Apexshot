@@ -7,7 +7,7 @@ import traceback
 from pathlib import Path
 from typing import Any, Optional
 
-from .. import config, database
+from .. import config, database, i18n
 from ..default_prompts import SNAPSHOT_SCHEMA
 from ..models import normalize_directory
 from . import llm_provider, settings_service, template_service, text_extractor
@@ -50,7 +50,7 @@ def render_prompt(template: str, mapping: dict[str, Any]) -> str:
 
 def parse_json_response(text: str) -> dict[str, Any]:
     if not text or not text.strip():
-        raise JsonParseError("Пустой ответ модели")
+        raise JsonParseError(i18n.t("Пустой ответ модели"))
     s = text.strip()
     fence = re.search(r"```(?:json)?\s*(.*?)```", s, re.S | re.I)
     if fence:
@@ -71,10 +71,12 @@ def parse_json_response(text: str) -> dict[str, Any]:
                 return data
     if any("Unterminated string" in e for e in errors):
         raise JsonParseError(
-            "Ответ модели обрезан — не хватило max_tokens. "
-            "Увеличьте max_tokens в настройках или сократите исходный текст."
+            i18n.t(
+                "Ответ модели обрезан — не хватило max_tokens. "
+                "Увеличьте max_tokens в настройках или сократите исходный текст."
+            )
         )
-    raise JsonParseError("Модель вернула невалидный JSON")
+    raise JsonParseError(i18n.t("Модель вернула невалидный JSON"))
 
 
 def _strip_trailing_commas(text: str) -> str:
@@ -290,10 +292,10 @@ def _run_pipeline(
     norm_dir = normalize_directory(str(Path(directory).resolve()))
     if not Path(directory).exists():
         raise GenerationError(
-            "Directory not found", "Указанная директория не существует или недоступна"
+            "Directory not found", i18n.t("Указанная директория не существует или недоступна")
         )
     if not Path(directory).is_dir():
-        raise GenerationError("Not a directory", "Указанный путь не является директорией")
+        raise GenerationError("Not a directory", i18n.t("Указанный путь не является директорией"))
 
     template = template_service.get_template(job["template_id"]) if job["template_id"] else None
     if template is None:
@@ -301,8 +303,11 @@ def _run_pipeline(
     if template is None or not template.enabled:
         raise GenerationError(
             "No active template",
-            f"Для типа {snapshot_type} нет активного шаблона. "
-            "Создайте или включите шаблон на странице Шаблоны.",
+            i18n.t(
+                "Для типа {type} нет активного шаблона. "
+                "Создайте или включите шаблон на странице Шаблоны.",
+                type=snapshot_type,
+            ),
         )
 
     update_job(job_id, step="collecting_files", progress=15)
@@ -310,14 +315,14 @@ def _run_pipeline(
     files = text_extractor.collect_files(directory, max_files)
     if not files:
         raise GenerationError(
-            "No files", "В директории не найдено файлов, которые можно прочитать"
+            "No files", i18n.t("В директории не найдено файлов, которые можно прочитать")
         )
 
     update_job(job_id, step="extracting_text", progress=30)
     docs = text_extractor.extract_documents(directory, max_files)
     if not docs:
         raise GenerationError(
-            "No text", "Не удалось извлечь текст из файлов директории"
+            "No text", i18n.t("Не удалось извлечь текст из файлов директории")
         )
     corpus = text_extractor.build_corpus(docs)
     original_chars = len(corpus)
@@ -371,7 +376,7 @@ def _run_pipeline(
             partials.append(partial)
         if not partials:
             raise GenerationError(
-                "Invalid JSON", "Модель вернула невалидный JSON для всех фрагментов"
+                "Invalid JSON", i18n.t("Модель вернула невалидный JSON для всех фрагментов")
             )
         merge_mapping = {
             **mapping,
@@ -424,7 +429,7 @@ def _run_pipeline(
 
 def _call_llm(system_prompt: str, user_prompt: str, settings: Any) -> str:
     if not settings.model:
-        raise GenerationError("Model not configured", "Укажите модель в настройках")
+        raise GenerationError("Model not configured", i18n.t("Укажите модель в настройках"))
     return llm_provider.chat(system_prompt, user_prompt, settings)
 
 
@@ -448,7 +453,7 @@ def _parse_with_retry(
             except llm_provider.ProviderError as exc:
                 last_error = exc
                 break
-    raise GenerationError("Invalid JSON", str(last_error or "Модель вернула невалидный JSON"))
+        raise GenerationError("Invalid JSON", str(last_error or i18n.t("Модель вернула невалидный JSON")))
 
 
 def _save_snapshot(

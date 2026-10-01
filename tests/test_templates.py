@@ -106,7 +106,7 @@ def test_usage_warning():
     template = template_service.get_active_template("article")
     assert template is not None
     warnings = template_service.usage_warnings(template)
-    assert any("активный" in w for w in warnings)
+    assert any(template.snapshot_type in w for w in warnings)
 
 
 def test_list_templates_filter():

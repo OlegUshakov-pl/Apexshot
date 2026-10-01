@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 import httpx
 
-from .. import config
+from .. import config, i18n
 from ..schemas import ProviderTestOut, SettingsOut
 
 
@@ -46,9 +46,15 @@ def list_models(provider: str, base_url: str, api_key: str = "", timeout: int = 
         items = data.get("data", data if isinstance(data, list) else [])
         return [m.get("id", "") for m in items if isinstance(m, dict) and m.get("id")]
     except httpx.HTTPError as exc:
-        raise ProviderError("Provider unreachable", f"Не удалось подключиться к {url}: {exc}") from exc
+        raise ProviderError(
+            "Provider unreachable",
+            i18n.t("Не удалось подключиться к {url}: {error}", url=url, error=exc),
+        ) from exc
     except ValueError as exc:
-        raise ProviderError("Invalid response", f"Провайдер вернул некорректный ответ: {exc}") from exc
+        raise ProviderError(
+            "Invalid response",
+            i18n.t("Провайдер вернул некорректный ответ: {error}", error=exc),
+        ) from exc
 
 
 def test_connection(
@@ -101,7 +107,12 @@ def chat(
                 resp = client.post(f"{url}/api/chat", json=payload)
             if resp.status_code >= 400:
                 raise ProviderError(
-                    "Provider error", f"Ошибка Ollama ({resp.status_code}): {resp.text[:300]}"
+                    "Provider error",
+                    i18n.t(
+                        "Ошибка Ollama ({status}): {body}",
+                        status=resp.status_code,
+                        body=resp.text[:300],
+                    ),
                 )
             data = resp.json()
             return (data.get("message") or {}).get("content", "") or ""
@@ -124,7 +135,12 @@ def chat(
                 resp = client.post(f"{url}/chat/completions", json=payload)
         if resp.status_code >= 400:
             raise ProviderError(
-                "Provider error", f"Ошибка LM Studio ({resp.status_code}): {resp.text[:300]}"
+                "Provider error",
+                i18n.t(
+                    "Ошибка LM Studio ({status}): {body}",
+                    status=resp.status_code,
+                    body=resp.text[:300],
+                ),
             )
         data = resp.json()
         choices = data.get("choices") or []
@@ -135,14 +151,28 @@ def chat(
         raise
     except httpx.TimeoutException as exc:
         raise ProviderError(
-            "Provider timeout", f"Превышено время ожидания ответа от {url} ({timeout} c)"
+            "Provider timeout",
+            i18n.t(
+                "Превышено время ожидания ответа от {url} ({timeout} c)",
+                url=url,
+                timeout=timeout,
+            ),
         ) from exc
     except httpx.HTTPError as exc:
         raise ProviderError(
-            "Provider unreachable", f"Не удалось подключиться к {provider} на {url}: {exc}"
+            "Provider unreachable",
+            i18n.t(
+                "Не удалось подключиться к {provider} на {url}: {error}",
+                provider=provider,
+                url=url,
+                error=exc,
+            ),
         ) from exc
     except ValueError as exc:
-        raise ProviderError("Invalid response", f"Провайдер вернул некорректный JSON: {exc}") from exc
+        raise ProviderError(
+            "Invalid response",
+            i18n.t("Провайдер вернул некорректный JSON: {error}", error=exc),
+        ) from exc
 
 
 def _headers(api_key: str) -> dict[str, str]:
