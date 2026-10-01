@@ -103,6 +103,12 @@ def chat(
                     "top_p": settings.top_p,
                     "seed": settings.seed,
                     "num_predict": settings.max_tokens,
+                    # Ограничиваем контекст: без этого Ollama грузит модель
+                    # с дефолтным большим контекстом (напр. 64k), KV-кэш
+                    # не влезает в VRAM, модель едет на CPU и всё тормозит.
+                    # Вход приложения и так обрезан max_input_chars (~12k
+                    # символов), так что 16384 хватает с запасом.
+                    "num_ctx": 16384,
                 },
             }
             if use_json:
