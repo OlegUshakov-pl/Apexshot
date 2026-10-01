@@ -39,3 +39,71 @@ def test_chat_raises_provider_error_when_unreachable():
 def test_headers_with_and_without_key():
     assert "Authorization" not in llm_provider._headers("")
     assert llm_provider._headers("secret")["Authorization"] == "Bearer secret"
+
+
+def test_chat_zero_timeout_disables_httpx_timeout(monkeypatch):
+    seen: dict = {}
+
+    class FakeResp:
+        status_code = 200
+        text = "{}"
+
+        def json(self):
+            return {"message": {"content": "ok"}}
+
+    class FakeClient:
+        def __init__(self, timeout=None, headers=None):
+            seen["timeout"] = timeout
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def post(self, url, json=None):
+            return FakeResp()
+
+    monkeypatch.setattr(llm_provider.httpx, "Client", FakeClient)
+    settings = SettingsOut(
+        provider="ollama",
+        base_url="http://localhost:11434",
+        model="m",
+        timeout_seconds=0,
+    )
+    assert llm_provider.chat("system", "user", settings) == "ok"
+    assert seen["timeout"] is None
+
+
+def test_chat_positive_timeout_passed_through(monkeypatch):
+    seen: dict = {}
+
+    class FakeResp:
+        status_code = 200
+        text = "{}"
+
+        def json(self):
+            return {"message": {"content": "ok"}}
+
+    class FakeClient:
+        def __init__(self, timeout=None, headers=None):
+            seen["timeout"] = timeout
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def post(self, url, json=None):
+            return FakeResp()
+
+    monkeypatch.setattr(llm_provider.httpx, "Client", FakeClient)
+    settings = SettingsOut(
+        provider="ollama",
+        base_url="http://localhost:11434",
+        model="m",
+        timeout_seconds=300,
+    )
+    assert llm_provider.chat("system", "user", settings) == "ok"
+    assert seen["timeout"] == 300

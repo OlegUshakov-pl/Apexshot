@@ -119,7 +119,8 @@
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">timeout, {{ t('сек') }}</label>
-        <input type="number" min="10" x-model.number="form.timeout_seconds" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
+        <input type="number" min="0" x-model.number="form.timeout_seconds" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
+        <p class="text-xs text-gray-400 mt-1">{{ t('0 — ждать без ограничения') }}</p>
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">max_input_chars</label>

@@ -87,7 +87,9 @@ def chat(
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
-    timeout = settings.timeout_seconds or 300
+    # timeout_seconds <= 0 означает «ждать бесконечно»: httpx понимает timeout=None.
+    raw_timeout = settings.timeout_seconds or 0
+    timeout: float | None = raw_timeout if raw_timeout > 0 else None
     try:
         if provider == "ollama":
             payload: dict[str, Any] = {
