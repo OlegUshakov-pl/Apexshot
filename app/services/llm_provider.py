@@ -94,6 +94,10 @@ def chat(
                 "model": settings.model,
                 "messages": messages,
                 "stream": False,
+                # Reasoning-модели (deepseek-r1, qwen3 и т.п.) по умолчанию
+                # думают — отключаем thinking, нужен только финальный ответ.
+                # Важно: think — top-level поле, НЕ внутри options.
+                "think": False,
                 "options": {
                     "temperature": settings.temperature,
                     "top_p": settings.top_p,
@@ -130,6 +134,13 @@ def chat(
             "seed": settings.seed,
             "max_tokens": settings.max_tokens,
             "stream": False,
+            # Отключаем thinking/reasoning для LM Studio
+            # (OpenAI-совместимый /v1/chat/completions):
+            # reasoning_effort=none — документированный способ,
+            # остальное — для qwen/прочих шаблонов, игнорируется если не поддержано.
+            "reasoning_effort": "none",
+            "enable_thinking": False,
+            "chat_template_kwargs": {"enable_thinking": False},
         }
         if use_json:
             payload["response_format"] = {"type": "json_object"}

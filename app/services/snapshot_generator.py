@@ -54,7 +54,13 @@ def parse_json_response(text: str) -> dict[str, Any]:
     s = text.strip()
     # Reasoning-модели (deepseek-r1, qwen3 и т.п.) кладут chain-of-thought
     # в <think>...</think> — вырезаем, иначе JSON не найдётся.
+    # thinking отключен через API (think=false / reasoning_effort=none),
+    # но часть моделей/версий игнорирует флаг — чистим остатки здесь.
     s = re.sub(r"<think>.*?</think>", "", s, flags=re.S | re.I).strip()
+    s = re.sub(r"<thinking>.*?</thinking>", "", s, flags=re.S | re.I).strip()
+    # Тег собран конкатенацией, чтобы не ломать разметку шаблонов.
+    _rs, _re = "<" + "reasoning>", "</" + "reasoning>"
+    s = re.sub(_rs + r".*?" + _re, "", s, flags=re.S | re.I).strip()
     fence = re.search(r"```(?:json)?\s*(.*?)```", s, re.S | re.I)
     if fence:
         s = fence.group(1).strip()
