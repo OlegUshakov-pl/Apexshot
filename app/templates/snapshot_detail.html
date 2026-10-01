@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "macros.html" import type_badge, confidence_badge, verified_badge %}
-{% block title %}{{ t('Слепок') }} · AI-слепки{% endblock %}
+{% block title %}{{ t('Слепок') }} · AI-snapshot{% endblock %}
 
 {% block content %}
 <div x-data="detail('{{ snapshot_id }}')" x-init="load()" class="space-y-6">

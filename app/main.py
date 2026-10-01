@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="AI-слепки", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="AI-snapshot", version="1.0.0", lifespan=lifespan)
 
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")

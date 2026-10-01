@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% from "macros.html" import type_badge, confidence_bar %}
-{% block title %}{{ t('Главная') }} · AI-слепки{% endblock %}
+{% block title %}{{ t('Главная') }} · AI-snapshot{% endblock %}
 
 {% block content %}
 <div x-data="dashboard()" x-init="load()" class="space-y-6">
   <div class="flex flex-wrap items-end justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">AI-слепки</h1>
+      <h1 class="text-2xl font-bold text-gray-900">AI-snapshot</h1>
       <p class="text-sm text-gray-500 mt-1">{{ t('Локальная библиотека сжатых машиночитаемых конспектов') }}</p>
     </div>
     <div class="flex flex-wrap gap-2">

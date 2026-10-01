@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}AI-слепки{% endblock %}</title>
+  <title>{% block title %}AI-snapshot{% endblock %}</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
   <script>
@@ -37,7 +37,7 @@
     <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
       <a href="/" class="flex items-center gap-2 font-semibold text-blue-700 whitespace-nowrap">
         <span class="inline-flex h-7 w-7 items-center justify-center bg-blue-600 text-white text-xs">AI</span>
-        <span>AI-слепки</span>
+        <span>AI-snapshot</span>
       </a>
       <nav class="flex items-center gap-1 overflow-x-auto">
         <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">{{ t('Главная') }}</a>
@@ -55,7 +55,7 @@
 
   <footer class="border-t border-gray-200 bg-white">
     <div class="max-w-6xl mx-auto px-4 py-4 text-xs text-gray-400 flex flex-wrap gap-3 justify-between">
-      <span>AI-слепки — {{ t('локальная библиотека машиночитаемых конспектов') }}</span>
+      <span>AI-snapshot — {{ t('локальная библиотека машиночитаемых конспектов') }}</span>
       <span>FastAPI · SQLite FTS5 · Ollama / LM Studio</span>
       <span>Version 1.0</span>
     </div>

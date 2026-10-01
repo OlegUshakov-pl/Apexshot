@@ -1,20 +1,20 @@
-# AI-слепки
+# AI-snapshot
 
-Локальное веб-приложение, которое превращает локальные директории в маленькие машиночитаемые
-JSON-«слепки» с помощью локальных LLM (**Ollama** или **LM Studio**) и даёт поиск по этой библиотеке.
+A local web application that turns local directories into small machine-readable
+JSON snapshots using local LLMs (**Ollama** or **LM Studio**) and provides search over this library.
 
 - FastAPI + Jinja2 + Tailwind CSS 4 (CDN) + Alpine.js (CDN)
-- SQLite + FTS5 (с fallback на `LIKE`)
-- генерация: сбор файлов → очистка текста → chunking → LLM → JSON → проверка цитат → сохранение
-- без версий слепка: одна директория + один тип = один слепок (замена без истории)
-- без Meilisearch / Docker / облака — всё локально
-- интерфейс на трёх языках: **English** (по умолчанию), **Polski**, **Русский** — выбор на странице «Настройки»
+- SQLite + FTS5 (with `LIKE` fallback)
+- generation: file collection → text cleaning → chunking → LLM → JSON → quote verification → saving
+- no snapshot versions: one directory + one type = one snapshot (replacement without history)
+- no Meilisearch / Docker / cloud — everything runs locally
+- trilingual UI: **English** (default), **Polski**, **Русский** — can be switched on the “Settings” page
 
-## Запуск
+## Run
 
-**Windows:** `install.bat` — только установка (`.venv` + зависимости), `start.bat` — установка при необходимости и запуск сервера.
+**Windows:** `install.bat` — install only (`.venv` + dependencies), `start.bat` — install if needed and start the server.
 
-Ручной запуск:
+Manual run:
 
 ```bash
 python -m venv .venv
@@ -23,18 +23,18 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Приложение: <http://127.0.0.1:8000>
+App: <http://127.0.0.1:8000>
 
-## Страницы
+## Pages
 
-| Маршрут | Назначение |
+| Route | Purpose |
 |---|---|
-| `/` | Главная: статистика, статус провайдера, последние слепки |
-| `/create` | Создание слепка с прогрессом и заменой существующего |
-| `/templates` | CRUD шаблонов, включение, default, тест промпта |
-| `/search` | Поиск и фильтры (тип, провайдер, модель, шаблон, confidence, возраст) |
-| `/snapshots/{id}` | Детали: Overview / Facts / Highlights / Entities / Metadata / Raw JSON |
-| `/settings` | Провайдер, параметры генерации, активные шаблоны по типам |
+| `/` | Home: statistics, provider status, recent snapshots |
+| `/create` | Snapshot creation with progress and replacement of the existing one |
+| `/templates` | Template CRUD, enabling, default, prompt testing |
+| `/search` | Search and filters (type, provider, model, template, confidence, age) |
+| `/snapshots/{id}` | Details: Overview / Facts / Highlights / Entities / Metadata / Raw JSON |
+| `/settings` | Provider, generation parameters, active templates per type |
 
 ## API
 
@@ -58,28 +58,28 @@ GET    /api/jobs/{job_id}
 GET    /api/files?directory=
 ```
 
-## Данные
+## Data
 
 ```
 data/
   snapshots.db        # settings, templates, snapshots, jobs, snapshots_fts
-  snapshots/*.json    # сами слепки (обычно 1–10 КБ)
+  snapshots/*.json    # snapshots themselves (usually 1–10 KB)
 ```
 
-Каталог можно перенести переменной окружения `SHOT_DATA_DIR`.
+The directory can be moved with the `SHOT_DATA_DIR` environment variable.
 
-## Настройка
+## Configuration
 
-Перед первым запуском откройте **Настройки**: выберите `ollama` (`http://localhost:11434`) или
-`lmstudio` (`http://localhost:1234/v1`), укажите модель и проверьте соединение.
+Before the first run, open **Settings**: select `ollama` (`http://localhost:11434`) or
+`lmstudio` (`http://localhost:1234/v1`), specify the model, and test the connection.
 
-Там же в блоке **«Язык интерфейса»** переключается язык UI: `English` / `Polski` / `Русский`
-(по умолчанию English, значение хранится в таблице `settings`).
+In the **“Interface language”** block you can switch the UI language: `English` / `Polski` / `Русский`
+(English by default, the value is stored in the `settings` table).
 
-Шесть встроенных шаблонов (article / documentation / news / forum / notes / general)
-создаются автоматически при первом запуске.
+Six built-in templates (article / documentation / news / forum / notes / general)
+are created automatically on first launch.
 
-## Тесты
+## Tests
 
 ```bash
 pip install pytest
