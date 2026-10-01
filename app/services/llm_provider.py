@@ -105,6 +105,11 @@ def chat(
                 payload["format"] = "json"
             with httpx.Client(timeout=timeout, headers=_headers(settings.api_key)) as client:
                 resp = client.post(f"{url}/api/chat", json=payload)
+                if resp.status_code >= 400 and use_json and "format" in resp.text.lower():
+                    # Старые/мелкие модели Ollama не поддерживают format=json —
+                    # повторяем без него, парсер вытащит JSON из текста.
+                    payload.pop("format", None)
+                    resp = client.post(f"{url}/api/chat", json=payload)
             if resp.status_code >= 400:
                 raise ProviderError(
                     "Provider error",

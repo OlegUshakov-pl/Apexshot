@@ -52,6 +52,9 @@ def parse_json_response(text: str) -> dict[str, Any]:
     if not text or not text.strip():
         raise JsonParseError(i18n.t("Пустой ответ модели"))
     s = text.strip()
+    # Reasoning-модели (deepseek-r1, qwen3 и т.п.) кладут chain-of-thought
+    # в <think>...</think> — вырезаем, иначе JSON не найдётся.
+    s = re.sub(r"<think>.*?</think>", "", s, flags=re.S | re.I).strip()
     fence = re.search(r"```(?:json)?\s*(.*?)```", s, re.S | re.I)
     if fence:
         s = fence.group(1).strip()
@@ -61,7 +64,13 @@ def parse_json_response(text: str) -> dict[str, Any]:
         candidates.append(s[start : end + 1])
     errors: list[str] = []
     for candidate in candidates:
-        for attempt in (candidate, _strip_trailing_commas(candidate)):
+        for attempt in (
+            candidate,
+            _strip_trailing_commas(candidate),
+            _repair_truncated_json(_strip_trailing_commas(candidate)),
+        ):
+            if not attempt:
+                continue
             try:
                 data = json.loads(attempt)
             except (json.JSONDecodeError, ValueError) as exc:
@@ -69,6 +78,9 @@ def parse_json_response(text: str) -> dict[str, Any]:
                 continue
             if isinstance(data, dict):
                 return data
+            # Некоторые малые модели оборачивают объект в список.
+            if isinstance(data, list) and data and isinstance(data[0], dict):
+                return data[0]
     if any("Unterminated string" in e for e in errors):
         raise JsonParseError(
             i18n.t(
@@ -81,6 +93,56 @@ def parse_json_response(text: str) -> dict[str, Any]:
 
 def _strip_trailing_commas(text: str) -> str:
     return re.sub(r",(\s*[}\]])", r"\1", text)
+
+
+def _repair_truncated_json(text: str) -> str:
+    """Пытается закрыть оборванный JSON: незакрытую строку, массивы и объекты."""
+    s = (text or "").strip()
+    if not s:
+        return s
+    # Убираем оборванный хвост строки: ..."abc  -> ..."abc"
+    # Считаем незаэкранированные кавычки.
+    in_str = False
+    esc = False
+    for ch in s:
+        if esc:
+            esc = False
+            continue
+        if ch == "\\":
+            if in_str:
+                esc = True
+            continue
+        if ch == '"':
+            in_str = not in_str
+    if in_str:
+        s += '"'
+    # Закрываем незакрытые скобки (вне строк).
+    stack: list[str] = []
+    in_str = False
+    esc = False
+    pairs = {"{": "}", "[": "]"}
+    for ch in s:
+        if esc:
+            esc = False
+            continue
+        if ch == "\\" and in_str:
+            esc = True
+            continue
+        if ch == '"':
+            in_str = not in_str
+            continue
+        if in_str:
+            continue
+        if ch in pairs:
+            stack.append(pairs[ch])
+        elif ch in ("}", "]") and stack and ch == stack[-1]:
+            stack.pop()
+    # Убираем висящую запятую/двоеточие в конце перед закрытием.
+    s = re.sub(r"[,:\[]\s*$", "", s.rstrip())
+    s = re.sub(r",(\s*[}\]])", r"\1", s)
+    while stack:
+        s += stack.pop()
+    return s
 
 
 def normalize_for_match(text: str) -> str:
@@ -497,10 +559,14 @@ def _run_pipeline(
     return snapshot_id
 
 
-def _call_llm(system_prompt: str, user_prompt: str, settings: Any) -> str:
-    if not settings.model:
+def _call_llm(system_prompt: str, user_prompt: str, settings: Any, json_mode: Any = None) -> str:
+    if not getattr(settings, "model", None):
+        if settings is None:  # unit-тесты передают settings=None и мокают _call_llm
+            return llm_provider.chat(system_prompt, user_prompt, settings, json_mode=json_mode)
         raise GenerationError("Model not configured", i18n.t("Укажите модель в настройках"))
-    return llm_provider.chat(system_prompt, user_prompt, settings)
+    if json_mode is None:
+        return llm_provider.chat(system_prompt, user_prompt, settings)
+    return llm_provider.chat(system_prompt, user_prompt, settings, json_mode=json_mode)
 
 
 def _parse_with_retry(
@@ -517,9 +583,25 @@ def _parse_with_retry(
             last_error = exc
             if attempt == MAX_ATTEMPTS - 1:
                 break
-            strict = STRICT_JSON_PREFIX + user_prompt
+            # Повтор шлём как короткий repair-запрос с прошлой ошибкой,
+            # а не гигантский исходный промпт заново: иначе слабые модели
+            # снова возвращают тот же битый/длинный ответ.
+            repair = (
+                STRICT_JSON_PREFIX
+                + "Исправь предыдущий ответ и верни только валидный JSON.\n"
+                + f"Ошибка: {exc}\n"
+                + f"Предыдущий ответ:\n{raw[:4000]}"
+            )
             try:
-                raw = _call_llm(system_prompt, strict, settings)
+                # json_mode выключаем принудительно: часть моделей
+                # в json-режиме не умеет чинить битый ответ.
+                try:
+                    raw = _call_llm(system_prompt, repair, settings, json_mode=False)  # type: ignore[call-arg]
+                except TypeError:
+                    raw = _call_llm(system_prompt, repair, settings)
+            except llm_provider.ProviderError as exc:
+                last_error = exc
+                break
             except llm_provider.ProviderError as exc:
                 last_error = exc
                 break
