@@ -147,6 +147,67 @@ TEMPLATE_DESCRIPTIONS = {
     "forum": "Шаблон для обсуждений и форумных веток",
     "notes": "Шаблон для личных заметок",
     "general": "Универсальный шаблон для любых директорий",
+    "software": "Шаблон для проектов приложений: README, стек, запуск, фичи, скриншоты",
+    "site": "Шаблон для сайтов: страницы, навигация, дизайн, стек, скриншоты",
+}
+
+SOFTWARE_SYSTEM_PROMPT = BASE_SYSTEM_PROMPT + """
+
+Дополнительно для Software Snapshot:
+1. Приоритет — README.md / README.rst / docs: назначение, фичи, установка, запуск, конфиги.
+2. Определи стек: язык(и), фреймворк (Django, FastAPI, Flask, Streamlit, NiceGUI, Next.js, React, Vue и т.п.), БД, очереди, Docker. Пиши только то, что явно видно в тексте (requirements.txt, pyproject.toml, package.json, Dockerfile, импорты). Не угадывай.
+3. technologies: языки, фреймворки, библиотеки, БД, инструменты сборки/деплоя.
+4. В sections сделай до 4 из: Обзор / Стек / Установка и запуск / Структура и конфиги / Скриншоты и медиа.
+5. Список images/медиафайлов дан отдельно — опиши их по именам (что за скриншот, к какому разделу относится), не выдумывай содержимое.
+6. facts: требования, команды запуска, переменные окружения, версии — каждый с точной quote."""
+
+SITE_SYSTEM_PROMPT = BASE_SYSTEM_PROMPT + """
+
+Дополнительно для Site Snapshot:
+1. Приоритет — README.md, index.html, тексты страниц, навигация, мета-теги.
+2. Определи стек сайта: генератор/CMS (Next.js, React, Vue, Nuxt, Hugo, Jekyll, WordPress и т.п.), CSS (Tailwind, Bootstrap), хостинг/деплой — только по явным признакам в тексте. Не угадывай.
+3. technologies: фреймворки, CMS, CSS, JS-библиотеки, хостинг.
+4. В sections сделай до 4 из: Обзор / Страницы и навигация / Дизайн и контент / Стек / Скриншоты и медиа.
+5. Список images/медиафайлов дан отдельно — сопоставь с разделами сайта по именам/путям (hero, landing, screenshots), не выдумывай содержимое картинок.
+6. facts: страницы, роуты, контакты, ссылки, инструкции деплоя — каждый с точной quote."""
+
+SOFTWARE_USER_PROMPT = """Сформируй Software Snapshot проекта.
+
+Тип: {type}
+Директория: {directory}
+Файлы: {files}
+Медиафайлы (images, опиши по именам, содержимое не выдумывай): {media_files}
+
+Особое внимание: README.md (назначение, фичи, установка/запуск), манифесты зависимостей
+(requirements.txt, pyproject.toml, package.json, go.mod, Dockerfile, docker-compose.yml),
+исходники (импорты Django / FastAPI / Flask / Streamlit / NiceGUI / Next.js и т.п.).
+
+Исходный текст:
+{text}
+
+Верни строго JSON по схеме:
+{schema}"""
+
+SITE_USER_PROMPT = """Сформируй Site Snapshot сайта.
+
+Тип: {type}
+Директория: {directory}
+Файлы: {files}
+Медиафайлы (images, сопоставь со страницами по именам, содержимое не выдумывай): {media_files}
+
+Особое внимание: README.md, HTML (title, meta, h1, nav, footer, ссылки), тексты страниц,
+конфиги фреймворков (package.json, next.config.*, astro.config.*, _config.yml), признаки
+стека (Next.js, React, Vue, Nuxt, Hugo, Jekyll, WordPress, Tailwind, Bootstrap и т.п.).
+
+Исходный текст:
+{text}
+
+Верни строго JSON по схеме:
+{schema}"""
+
+_TYPE_PROMPTS = {
+    "software": (SOFTWARE_SYSTEM_PROMPT, SOFTWARE_USER_PROMPT),
+    "site": (SITE_SYSTEM_PROMPT, SITE_USER_PROMPT),
 }
 
 
@@ -162,14 +223,19 @@ def build_default_templates() -> list[dict]:
         "forum",
         "notes",
         "general",
+        "software",
+        "site",
     ]:
+        system_prompt, user_prompt = _TYPE_PROMPTS.get(
+            type_key, (BASE_SYSTEM_PROMPT, DEFAULT_USER_PROMPT)
+        )
         templates.append(
             {
                 "name": f"{type_key.capitalize()} Snapshot",
                 "description": TEMPLATE_DESCRIPTIONS[type_key],
                 "snapshot_type": type_key,
-                "system_prompt": BASE_SYSTEM_PROMPT,
-                "user_prompt": DEFAULT_USER_PROMPT,
+                "system_prompt": system_prompt,
+                "user_prompt": user_prompt,
                 "chunk_user_prompt": DEFAULT_CHUNK_PROMPT,
                 "merge_user_prompt": DEFAULT_MERGE_PROMPT,
                 "schema_json": schema_json,

@@ -8,7 +8,7 @@ DATA_DIR = Path(os.environ.get("SHOT_DATA_DIR", BASE_DIR / "data"))
 SNAPSHOTS_DIR = DATA_DIR / "snapshots"
 DB_PATH = DATA_DIR / "snapshots.db"
 
-SNAPSHOT_TYPES = ["article", "documentation", "news", "forum", "notes", "general"]
+SNAPSHOT_TYPES = ["article", "documentation", "news", "forum", "notes", "general", "software", "site"]
 
 PROVIDERS = ["ollama", "lmstudio", "anthropic", "openai", "google", "mistral", "groq", "deepseek", "openrouter", "opencode"]
 
@@ -140,4 +140,6 @@ TYPE_LABELS = {
     "forum": "Форум",
     "notes": "Заметки",
     "general": "Общий",
+    "software": "Софт",
+    "site": "Сайт",
 }

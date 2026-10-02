@@ -454,7 +454,7 @@ def _run_pipeline(
         raise GenerationError(
             "No text", i18n.t("Не удалось извлечь текст из файлов директории")
         )
-    corpus = text_extractor.build_corpus(docs)
+    corpus = text_extractor.build_corpus(docs, text_extractor.collect_media_files(directory))
     original_chars = len(corpus)
     content_truncated = original_chars > max_input_chars
     if content_truncated:
@@ -468,6 +468,7 @@ def _run_pipeline(
         "type": snapshot_type,
         "directory": norm_dir,
         "files": ", ".join(d.file for d in docs[:50]),
+        "media_files": ", ".join(text_extractor.collect_media_files(directory)[:50]) or "—",
         "text": corpus_for_prompt,
         "schema": schema_pretty,
         "chunk_index": 1,

@@ -169,6 +169,7 @@ def init_db() -> None:
             conn.executescript(FTS_SQL)
         _seed_settings(conn)
         _seed_templates(conn)
+        _ensure_missing_templates(conn)
 
 
 def reset_stale_jobs(message: str = "") -> int:
@@ -221,6 +222,36 @@ def _seed_templates(conn: sqlite3.Connection) -> None:
     ).fetchone()
     defaults = json.loads(defaults_row["default_templates_json"] or "{}")
     for tpl in build_default_templates():
+        cur = conn.execute(
+            """
+            INSERT INTO templates (name, description, snapshot_type, system_prompt, user_prompt,
+              chunk_user_prompt, merge_user_prompt, schema_json, enabled, is_default,
+              created_at, updated_at)
+            VALUES (:name, :description, :snapshot_type, :system_prompt, :user_prompt,
+              :chunk_user_prompt, :merge_user_prompt, :schema_json, :enabled, :is_default, :ts, :ts)
+            """,
+            {**tpl, "ts": ts},
+        )
+        defaults.setdefault(tpl["snapshot_type"], cur.lastrowid)
+    conn.execute(
+        "UPDATE settings SET default_templates_json = ? WHERE id = 1",
+        (json.dumps(defaults, ensure_ascii=False),),
+    )
+
+
+def _ensure_missing_templates(conn: sqlite3.Connection) -> None:
+    """Добавляет шаблоны новых типов в существующую БД."""
+    existing = {row["snapshot_type"] for row in conn.execute("SELECT snapshot_type FROM templates")}
+    missing = [t for t in build_default_templates() if t["snapshot_type"] not in existing]
+    if not missing:
+        return
+    ts = now_iso()
+    row = conn.execute("SELECT default_templates_json FROM settings WHERE id = 1").fetchone()
+    try:
+        defaults = json.loads(row["default_templates_json"] or "{}") if row else {}
+    except json.JSONDecodeError:
+        defaults = {}
+    for tpl in missing:
         cur = conn.execute(
             """
             INSERT INTO templates (name, description, snapshot_type, system_prompt, user_prompt,

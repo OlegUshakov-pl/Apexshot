@@ -31,6 +31,14 @@ _WS = re.compile(r"[ \t]+")
 _BLANK_LINES = re.compile(r"\n{3,}")
 
 
+MEDIA_EXTENSIONS = {
+    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp", ".ico",
+    ".mp4", ".webm",
+}
+
+PRIORITY_FILES = ("readme.md", "readme.rst", "readme.txt", "readme")
+
+
 def collect_files(directory: str, max_files: int = 200) -> list[Path]:
     root = Path(directory)
     results: list[Path] = []
@@ -164,8 +172,44 @@ def normalize_text(text: str) -> str:
     return text.strip()
 
 
-def build_corpus(docs: list[Document]) -> str:
+def build_corpus(docs: list[Document], media_files: list[str] | None = None) -> str:
     parts = []
-    for doc in docs:
+    # README и docs — первыми, чтобы модель точно их увидела даже при обрезке.
+    def _priority(d: Document) -> tuple[int, str]:
+        name = d.file.lower().split("/")[-1]
+        if name in PRIORITY_FILES:
+            return (0, d.file)
+        if d.file.lower().startswith("docs/"):
+            return (1, d.file)
+        return (2, d.file)
+
+    for doc in sorted(docs, key=_priority):
         parts.append(f"### Файл: {doc.file}\nЗаголовок: {doc.title}\n\n{doc.text}")
+    if media_files:
+        parts.append(
+            "### Медиафайлы (images, содержимое неизвестно — суди только по именам/путям):\n"
+            + "\n".join(f"- {m}" for m in media_files[:100])
+        )
     return "\n\n".join(parts)
+
+
+def collect_media_files(directory: str, max_files: int = 200) -> list[str]:
+    root = Path(directory)
+    results: list[str] = []
+    for path in sorted(root.rglob("*")):
+        if len(results) >= max_files:
+            break
+        if not path.is_file():
+            continue
+        try:
+            rel_parts = path.relative_to(root).parts
+        except ValueError:
+            continue
+        if any(part in config.SKIP_DIRS or part.startswith(".") for part in rel_parts[:-1]):
+            continue
+        if path.name in config.SKIP_FILES or path.name.startswith("."):
+            continue
+        if path.suffix.lower() not in MEDIA_EXTENSIONS:
+            continue
+        results.append(str(path.relative_to(root)).replace("\\", "/"))
+    return results
