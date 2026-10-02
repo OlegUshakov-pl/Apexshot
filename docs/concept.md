@@ -1,48 +1,48 @@
-# Проект: ApexShot (AI Snapshot Search)
+# Project: ApexShot (AI Snapshot Search)
 
-## 1. Описание проблемы
-Современный поиск (в вебе и корпоративных базах) страдает от **«шума» и фрагментации**.
-*   **Проблема пользователя:** Чтобы найти точную техническую деталь, настройку или документ, человеку приходится открывать десятки страниц, просматривать навигацию, рекламу и служебный текст. Процесс поиска медленный, утомительный и часто неточный.
-*   **Проблема разработчика/бизнеса:** Индексирование сайтов и документации вручную требует огромных ресурсов. Традиционные полнотекстовые индексы (HTML/PDF) тяжелы, занимают гигабайты дискового пространства и плохо поддаются семантическому анализу.
-*   **Ключевая боль:** Информация разбросана. Чтобы получить ответ, человек вынужден «копать» вручную.
+## 1. Problem Description
+Modern search (on the web and in corporate databases) suffers from **noise** and **fragmentation**.
+*   **User problem:** To find a precise technical detail, setting, or document, a person has to open dozens of pages and wade through navigation, ads, and boilerplate text. The search process is slow, exhausting, and often imprecise.
+*   **Developer/business problem:** Manually indexing websites and documentation requires enormous resources. Traditional full-text indexes (HTML/PDF) are heavy, take up gigabytes of disk space, and are poorly suited to semantic analysis.
+*   **Core pain point:** Information is scattered. To get an answer, a person is forced to "dig" manually.
 
-## 2. Предлагаемое решение
-**ApexShot** — это централизованная система семантического поиска, основанная на **AI-слепках** (JSON Snapshots).
+## 2. Proposed Solution
+**ApexShot** is a centralized semantic search system built on **AI snapshots** (JSON Snapshots).
 
-Система превращает любой входной контент (текст, документ, код) в **компактный, структурированный JSON-файл-слепок** (размер 1–20 КБ).
+The system transforms any input content (text, document, code) into a **compact, structured JSON snapshot file** (1–20 KB in size).
 
-Эти JSON-слепки накапливаются на центральном сервере. Поисковый движок работает не с мегабайтами сырого текста, а с маленькими, очищенными и структурированными JSON-объектами.
+These JSON snapshots accumulate on a central server. The search engine works not with megabytes of raw text, but with small, cleaned, structured JSON objects.
 
-**Результат:**
-*   **Для пользователя:** Мгновенный, точный поиск. Система понимает *смысл* запроса (через сгенерированные `summary` и `entities`), а не только жесткое совпадение ключевых слов.
-*   **Для владельца контента:** Простая интеграция через API. Контент автоматически превращается в «цифровой след», который легко найти.
-*   **Для инфраструктуры:** Минимальные затраты на хранение и пропускную способность (JSON легче и быстрее обрабатывается, чем сырой HTML).
+**Result:**
+*   **For the user:** Instant, precise search. The system understands the *meaning* of a query (via the generated `summary` and `entities`), not just a hard keyword match.
+*   **For content owners:** Simple API integration. Content is automatically turned into a "digital footprint" that is easy to find.
+*   **For the infrastructure:** Minimal storage and bandwidth costs (JSON is lighter and faster to process than raw HTML).
 
-## 3. Основной принцип работы
-Система работает по модели **«Загрузка текста → AI-анализ → Хранение JSON → Поиск»**.
+## 3. Core Operating Principle
+The system works on the model **"Text Upload → AI Analysis → JSON Storage → Search"**.
 
-1.  **Генерация (Client-Side / Uploader):**
-    *   Пользователь (или автоматизированный скрипт) отправляет сырой текст (content) на сервер через API.
-    *   Пользователь выбирает провайдер: **Ollama** (локально), **LM Studio** (локально) или **Облачный провайдер** (через API-ключ).
-    *   Сервер передает текст выбранной модели.
-    *   Модель анализирует текст и формирует **JSON-слепок** со строгой схемой:
-        *   `summary`: краткая суть текста.
-        *   `facts`: ключевые утверждения с цитатами из исходного текста (для верификации).
-        *   `entities`: темы, организации, технологии, имена.
-        *   `metadata`: источник (url), дата, версия модели, провайдер.
-    *   *Валидация:* Сервер автоматически проверяет, что цитаты в `facts` действительно присутствуют в исходном тексте (защита от галлюцинаций LLM).
+1.  **Generation (Client-Side / Uploader):**
+    *   The user (or an automated script) sends raw text (content) to the server via the API.
+    *   The user chooses a provider: **Ollama** (local), **LM Studio** (local), or a **cloud provider** (via API key).
+    *   The server passes the text to the chosen model.
+    *   The model analyzes the text and produces a **JSON snapshot** with a strict schema:
+        *   `summary`: a concise gist of the text.
+        *   `facts`: key statements with quotes from the source text (for verification).
+        *   `entities`: topics, organizations, technologies, names.
+        *   `metadata`: source (url), date, model version, provider.
+    *   *Validation:* The server automatically checks that the quotes in `facts` actually appear in the original text (a guard against LLM hallucinations).
 
-2.  **Хранение (Server-Side):**
-    *   Валидный JSON-файл сохраняется на диске сервера (или в объектном хранилище).
-    *   Сервер извлекает метаданные (`title`, `url`, `entities`, `summary`) и сохраняет их в реляционную БД (PostgreSQL/SQLite) для быстрого доступа.
-    *   *Примечание:* В текущей MVP-версии поиск выполняется путем прямого поиска по полям метаданных и тексту `facts`. Векторный поиск (embeddings) будет добавлен в будущих версиях.
+2.  **Storage (Server-Side):**
+    *   The valid JSON file is saved on the server's disk (or in object storage).
+    *   The server extracts the metadata (`title`, `url`, `entities`, `summary`) and stores it in a relational DB (PostgreSQL/SQLite) for fast access.
+    *   *Note:* In the current MVP version, search is performed by direct matching on metadata fields and the `facts` text. Vector search (embeddings) will be added in future versions.
 
-3.  **Поиск (Search):**
-    *   Пользователь вводит запрос в веб-интерфейсе или API.
-    *   Сервер выполняет поиск по сохраненным метаданным и тексту слепков (например, через полнотекстовый поиск в PostgreSQL `tsvector` или простой `ILIKE`).
-    *   Результаты возвращаются пользователю с указанием источника (URL), краткого описания (`summary`) и ключевых фактов (`facts`).
+3.  **Search:**
+    *   The user enters a query in the web interface or via the API.
+    *   The server searches the stored metadata and snapshot text (e.g., via PostgreSQL full-text search `tsvector` or a simple `ILIKE`).
+    *   Results are returned to the user with the source (URL), a short description (`summary`), and the key facts (`facts`).
 
-## 4. Архитектура
+## 4. Architecture
 
 ```
 [Client / Uploader]
@@ -90,54 +90,54 @@
             [Response: List of Snapshots with summary & facts]
 ```
 
-**Компоненты:**
-*   **Backend:** FastAPI (Python) — единственный интерфейс для пользователя.
-*   **Database:** PostgreSQL или SQLite для хранения метаданных.
-*   **Storage:** Файловая система (или MinIO/S3) для хранения JSON-файлов.
+**Components:**
+*   **Backend:** FastAPI (Python) — the only interface for the user.
+*   **Database:** PostgreSQL or SQLite for storing metadata.
+*   **Storage:** File system (or MinIO/S3) for storing JSON files.
 *   **LLM Providers:**
-    *   **Ollama:** Локальный запуск моделей (например, `llama3.2:3b`, `mistral:7b`).
-    *   **LM Studio:** Локальный запуск моделей.
-    *   **Cloud Providers:** OpenAI, Anthropic, Mistral и др. (через API-ключи, переданные клиентом).
+    *   **Ollama:** local model inference (e.g., `llama3.2:3b`, `mistral:7b`).
+    *   **LM Studio:** local model inference.
+    *   **Cloud Providers:** OpenAI, Anthropic, Mistral, etc. (via API keys passed by the client).
 
-## 5. Взаимодействие пользователя с системой
+## 5. User Interaction with the System
 
-Пользователь взаимодействует с системой через **Web UI** (или CLI/API) без установки браузерных расширений.
+The user interacts with the system through a **Web UI** (or CLI/API), without installing browser extensions.
 
-1.  **Настройка провайдера:**
-    *   Пользователь заходит в веб-интерфейс ApexShot.
-    *   В разделе настроек он выбирает источник интеллекта:
-        *   *Local:* Ollama (указывает IP:Port, например `localhost:11434`).
-        *   *Local:* LM Studio (указывает IP:Port).
-        *   *Cloud:* Вставляет API-ключ (OpenAI/Anthropic/Mistral) и выбирает модель.
+1.  **Provider setup:**
+    *   The user opens the ApexShot web interface.
+    *   In the settings section they choose the intelligence source:
+        *   *Local:* Ollama (specify IP:Port, e.g., `localhost:11434`).
+        *   *Local:* LM Studio (specify IP:Port).
+        *   *Cloud:* paste an API key (OpenAI/Anthropic/Mistral) and pick a model.
 
-2.  **Загрузка контента (Snapshot Creation):**
-    *   Пользователь вставляет текст (код, статью, документ) в форму загрузки.
-    *   Нажимает кнопку "Create Snapshot".
-    *   Сервер отправляет текст в выбранный LLM.
-    *   Пользователь видит статус обработки.
-    *   После успешной валидации пользователь видит предпросмотр: `Summary`, `Entities`, `Facts`. Он может отредактировать их (если разрешено) или подтвердить сохранение.
+2.  **Content upload (Snapshot Creation):**
+    *   The user pastes text (code, article, document) into the upload form.
+    *   They click the "Create Snapshot" button.
+    *   The server sends the text to the chosen LLM.
+    *   The user sees the processing status.
+    *   After successful validation the user sees a preview: `Summary`, `Entities`, `Facts`. They can edit these (if allowed) or confirm saving.
 
-3.  **Поиск:**
-    *   Пользователь вводит запрос в строку поиска (например, "настройка CORS в FastAPI").
-    *   Система ищет по `title`, `summary` и `entities` в базе данных.
-    *   Результаты отображаются в виде карточек:
-        *   Заголовок.
-        *   Краткое описание (`summary`).
-        *   Ключевые факты (`facts`).
-        *   Ссылка на исходник.
-    *   Клик по карточке открывает полный JSON-слепок (расширенный вид), где пользователь видит все детали.
+3.  **Search:**
+    *   The user enters a query in the search bar (e.g., "CORS configuration in FastAPI").
+    *   The system searches `title`, `summary`, and `entities` in the database.
+    *   Results are displayed as cards:
+        *   Title.
+        *   Short description (`summary`).
+        *   Key facts (`facts`).
+        *   Link to the source.
+    *   Clicking a card opens the full JSON snapshot (expanded view), where the user sees all the details.
 
-4.  **Бизнес-модель (для владельцев контента):**
-    *   *Free Tier:* Ограниченное количество загрузок в месяц.
-    *   *Pro Tier (Биллинг через BLIK):* Неограниченные загрузки, приоритетная обработка, экспорт данных.
+4.  **Business model (for content owners):**
+    *   *Free Tier:* a limited number of uploads per month.
+    *   *Pro Tier (billing via BLIK):* unlimited uploads, priority processing, data export.
 
 ---
 
-**Ключевые отличия от классического поиска:**
-1.  **Очистка на входе:** Мы не индексируем "мусор" (меню, скрипты). Мы индексируем *смысл*.
-2.  **Легкость данных:** JSON-слепки на порядки легче сырых страниц.
-3.  **Гибкость LLM:** Пользователь сам решает, какой интеллект использовать (локальный для приватности/бесплатности или облачный для качества).
-4.  **Приватность:** Возможность использования локальных моделей (Ollama/LM Studio) означает, что чувствительные данные (конструкторские детали, внутренняя документация) не покидают локальную сеть, если пользователь так настроит систему.
+**Key differences from classic search:**
+1.  **Cleaning at the input:** We do not index "junk" (menus, scripts). We index *meaning*.
+2.  **Lightweight data:** JSON snapshots are orders of magnitude lighter than raw pages.
+3.  **LLM flexibility:** the user decides which intelligence to use (local for privacy/free of charge, or cloud for quality).
+4.  **Privacy:** the ability to use local models (Ollama/LM Studio) means that sensitive data (engineering details, internal documentation) does not leave the local network if the user configures the system that way.
 
 
-Дата: 02.10.2026
+Date: 02.10.2026
