@@ -35,24 +35,45 @@
   <!-- PROVIDER -->
   <section class="bg-white shadow border border-gray-100 p-6 space-y-4">
     <h2 class="font-semibold text-gray-900">{{ t('Провайдер') }}</h2>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Select Provider</label>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <template x-for="p in providers" :key="p.id">
+          <button type="button" @click="selectProvider(p.id)"
+                  :class="form.provider === p.id ? 'border-violet-500 bg-violet-50' : 'border-gray-200 hover:border-gray-300'"
+                  class="p-4 border-2 rounded-lg text-left transition-all">
+            <div class="text-sm font-semibold text-gray-900" x-text="p.name"></div>
+            <span class="text-[11px] px-1.5 py-0.5 rounded mt-1 inline-block"
+                  :class="p.type === 'local' ? 'bg-green-100 text-green-700' : p.type === 'aggregator' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'"
+                  x-text="p.type"></span>
+          </button>
+        </template>
+      </div>
+    </div>
     <div class="grid sm:grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('Тип провайдера') }}</label>
-        <select x-model="form.provider" class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
-          <option value="ollama">Ollama</option>
-          <option value="lmstudio">LM Studio</option>
-        </select>
-      </div>
-      <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Base URL</label>
-        <input x-model="form.base_url" @change="applyDefaults()"
-               class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
-               placeholder="http://localhost:11434">
+        <input x-model="form.base_url"
+                class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                placeholder="http://localhost:11434">
       </div>
-      <div>
+      <div x-show="!isLocal()">
+        <label class="block text-sm font-medium text-gray-700 mb-1">API Key
+          <span class="inline-block w-2 h-2 rounded-full ml-1" :class="test && test.reachable ? 'bg-green-500' : test && test.error ? 'bg-red-500' : 'bg-gray-300'"></span>
+        </label>
+        <div class="relative">
+          <input x-model="form.api_key" :type="showKey ? 'text' : 'password'" autocomplete="off"
+                  class="w-full border border-gray-300 px-3 py-2 pr-10 focus:ring-2 focus:ring-blue-500" placeholder="sk-...">
+          <button type="button" @click="showKey = !showKey" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" x-text="showKey ? '🙈' : '👁'"></button>
+        </div>
+        <p class="text-xs text-gray-400 mt-1" x-show="keyUrl()">Get key:
+          <a :href="keyUrl()" target="_blank" class="text-violet-500 underline" x-text="keyUrl()"></a>
+        </p>
+      </div>
+      <div x-show="isLocal()">
         <label class="block text-sm font-medium text-gray-700 mb-1">API key {{ t('(не обязателен)') }}</label>
         <input x-model="form.api_key" type="password" autocomplete="off"
-               class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500" placeholder="">
+                class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500" placeholder="">
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('Модель') }}</label>
@@ -183,6 +204,37 @@ function settingsPage() {
     types: ['article','documentation','news','forum','notes','general'],
     templates: [],
     availableModels: [],
+    showKey: false,
+    providers: [
+      {id:'anthropic', name:'Anthropic', type:'cloud'},
+      {id:'deepseek', name:'DeepSeek', type:'cloud'},
+      {id:'google', name:'Google AI', type:'cloud'},
+      {id:'groq', name:'Groq', type:'cloud'},
+      {id:'mistral', name:'Mistral', type:'cloud'},
+      {id:'ollama', name:'Ollama', type:'local'},
+      {id:'openai', name:'OpenAI', type:'cloud'},
+      {id:'opencode', name:'OpenCode', type:'cloud'},
+      {id:'openrouter', name:'OpenRouter', type:'aggregator'},
+      {id:'lmstudio', name:'LM Studio', type:'local'},
+    ],
+    keyUrls: {
+      anthropic:'https://console.anthropic.com/settings/keys',
+      openai:'https://platform.openai.com/api-keys',
+      google:'https://aistudio.google.com/app/apikey',
+      mistral:'https://console.mistral.ai/api-keys',
+      groq:'https://console.groq.com/keys',
+      deepseek:'https://platform.deepseek.com/api_keys',
+      openrouter:'https://openrouter.ai/keys',
+      opencode:'https://opencode.ai/settings/keys'
+    },
+    defaults: {
+      ollama:'http://localhost:11434', lmstudio:'http://localhost:1234/v1',
+      anthropic:'https://api.anthropic.com/v1', openai:'https://api.openai.com/v1',
+      google:'https://generativelanguage.googleapis.com/v1beta', mistral:'https://api.mistral.ai/v1',
+      groq:'https://api.groq.com/openai/v1', deepseek:'https://api.deepseek.com/v1',
+      openrouter:'https://openrouter.ai/api/v1', opencode:'https://opencode.ai/zen/v1'
+    },
+    availableModels: [],
     test: null,
     testing: false,
     saving: false,
@@ -205,8 +257,15 @@ function settingsPage() {
       }
     },
     templatesFor(type) { return this.templates.filter(t => t.snapshot_type === type && t.enabled); },
+    isLocal() { return this.form.provider === 'ollama' || this.form.provider === 'lmstudio'; },
+    keyUrl() { return this.keyUrls[this.form.provider] || ''; },
+    selectProvider(id) {
+      this.form.provider = id;
+      this.form.base_url = this.defaults[id] || '';
+      this.test = null;
+    },
     applyDefaults() {
-      if (!this.form.base_url) this.form.base_url = this.form.provider === 'ollama' ? 'http://localhost:11434' : 'http://localhost:1234/v1';
+      if (!this.form.base_url) this.form.base_url = this.defaults[this.form.provider] || '';
     },
     async fetchModels() {
       try {

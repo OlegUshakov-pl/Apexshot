@@ -73,7 +73,7 @@ def get_settings() -> SettingsOut:
 @api.put("/settings", response_model=SettingsOut)
 def put_settings(payload: SettingsUpdate) -> SettingsOut:
     if payload.provider not in config.PROVIDERS:
-        raise _error(400, "Invalid provider", i18n.t("Провайдер должен быть ollama или lmstudio"))
+        raise _error(400, "Invalid provider", i18n.t("Провайдер должен быть одним из: ") + ", ".join(config.PROVIDERS))
     if payload.language not in i18n.LANGUAGES:
         raise _error(400, "Invalid language", i18n.t("Язык должен быть одним из: en, pl, ru"))
     if payload.temperature < 0 or payload.temperature > 2:

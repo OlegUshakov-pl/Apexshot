@@ -10,11 +10,56 @@ DB_PATH = DATA_DIR / "snapshots.db"
 
 SNAPSHOT_TYPES = ["article", "documentation", "news", "forum", "notes", "general"]
 
-PROVIDERS = ["ollama", "lmstudio"]
+PROVIDERS = ["ollama", "lmstudio", "anthropic", "openai", "google", "mistral", "groq", "deepseek", "openrouter", "opencode"]
+
+PROVIDER_TYPES = {
+    "ollama": "local",
+    "lmstudio": "local",
+    "openrouter": "aggregator",
+    "anthropic": "cloud",
+    "openai": "cloud",
+    "google": "cloud",
+    "mistral": "cloud",
+    "groq": "cloud",
+    "deepseek": "cloud",
+    "opencode": "cloud",
+}
+
+PROVIDER_NAMES = {
+    "ollama": "Ollama",
+    "lmstudio": "LM Studio",
+    "anthropic": "Anthropic",
+    "openai": "OpenAI",
+    "google": "Google AI",
+    "mistral": "Mistral",
+    "groq": "Groq",
+    "deepseek": "DeepSeek",
+    "openrouter": "OpenRouter",
+    "opencode": "OpenCode",
+}
+
+KEY_URLS = {
+    "anthropic": "https://console.anthropic.com/settings/keys",
+    "openai": "https://platform.openai.com/api-keys",
+    "google": "https://aistudio.google.com/app/apikey",
+    "mistral": "https://console.mistral.ai/api-keys",
+    "groq": "https://console.groq.com/keys",
+    "deepseek": "https://platform.deepseek.com/api_keys",
+    "openrouter": "https://openrouter.ai/keys",
+    "opencode": "https://opencode.ai/settings/keys",
+}
 
 DEFAULT_BASE_URLS = {
     "ollama": "http://localhost:11434",
     "lmstudio": "http://localhost:1234/v1",
+    "anthropic": "https://api.anthropic.com/v1",
+    "openai": "https://api.openai.com/v1",
+    "google": "https://generativelanguage.googleapis.com/v1beta",
+    "mistral": "https://api.mistral.ai/v1",
+    "groq": "https://api.groq.com/openai/v1",
+    "deepseek": "https://api.deepseek.com/v1",
+    "openrouter": "https://openrouter.ai/api/v1",
+    "opencode": "https://opencode.ai/zen/v1",
 }
 
 TEXT_EXTENSIONS = {

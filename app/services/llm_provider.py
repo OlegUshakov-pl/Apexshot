@@ -19,7 +19,7 @@ def normalize_base_url(provider: str, base_url: str) -> str:
     url = (base_url or "").strip().rstrip("/")
     if not url:
         url = config.DEFAULT_BASE_URLS.get(provider, "")
-    if provider == "lmstudio":
+    if provider in ("lmstudio", "openai", "mistral", "groq", "deepseek", "openrouter", "opencode"):
         if url.endswith("/v1"):
             pass
         elif "/v1/" in url:
@@ -29,9 +29,31 @@ def normalize_base_url(provider: str, base_url: str) -> str:
     return url
 
 
+def _auth_headers(provider: str, api_key: str) -> dict[str, str]:
+    headers = {"Content-Type": "application/json"}
+    if not api_key:
+        return headers
+    if provider == "anthropic":
+        headers["x-api-key"] = api_key
+        headers["anthropic-version"] = "2023-06-01"
+    elif provider == "google":
+        # key goes as query param, nothing to add here
+        pass
+    else:
+        headers["Authorization"] = f"Bearer {api_key}"
+    return headers
+
+
+def _headers(api_key: str) -> dict[str, str]:
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    return headers
+
+
 def list_models(provider: str, base_url: str, api_key: str = "", timeout: int = 15) -> list[str]:
     url = normalize_base_url(provider, base_url)
-    headers = _headers(api_key)
+    headers = _auth_headers(provider, api_key)
     try:
         if provider == "ollama":
             with httpx.Client(timeout=timeout, headers=headers) as client:
@@ -39,6 +61,27 @@ def list_models(provider: str, base_url: str, api_key: str = "", timeout: int = 
             resp.raise_for_status()
             data = resp.json()
             return [m.get("name", "") for m in data.get("models", []) if m.get("name")]
+        if provider == "anthropic":
+            with httpx.Client(timeout=timeout, headers=headers) as client:
+                resp = client.get(f"{url}/models")
+            resp.raise_for_status()
+            data = resp.json()
+            items = data.get("data", [])
+            return [m.get("id", "") for m in items if isinstance(m, dict) and m.get("id")]
+        if provider == "google":
+            sep = "&" if "?" in url else "?"
+            with httpx.Client(timeout=timeout, headers=headers) as client:
+                resp = client.get(f"{url}/models{sep}key={api_key}")
+            resp.raise_for_status()
+            data = resp.json()
+            out = []
+            for m in data.get("models", []):
+                name = m.get("name", "")
+                if name.startswith("models/"):
+                    name = name[len("models/"):]
+                if name:
+                    out.append(name)
+            return out
         with httpx.Client(timeout=timeout, headers=headers) as client:
             resp = client.get(f"{url}/models")
         resp.raise_for_status()
@@ -90,7 +133,43 @@ def chat(
     # timeout_seconds <= 0 означает «ждать бесконечно»: httpx понимает timeout=None.
     raw_timeout = settings.timeout_seconds or 0
     timeout: float | None = raw_timeout if raw_timeout > 0 else None
+    headers = _auth_headers(provider, settings.api_key)
     try:
+        if provider == "anthropic":
+            payload: dict[str, Any] = {
+                "model": settings.model,
+                "max_tokens": settings.max_tokens,
+                "system": system_prompt,
+                "messages": [{"role": "user", "content": user_prompt}],
+                "temperature": settings.temperature,
+                "top_p": settings.top_p,
+            }
+            with httpx.Client(timeout=timeout, headers=headers) as client:
+                resp = client.post(f"{url}/messages", json=payload)
+            if resp.status_code >= 400:
+                raise ProviderError("Provider error", f"Ошибка Anthropic ({resp.status_code}): {resp.text[:300]}")
+            data = resp.json()
+            blocks = data.get("content") or []
+            return "".join(b.get("text", "") for b in blocks if isinstance(b, dict)) or ""
+        if provider == "google":
+            sep = "&" if "?" in url else "?"
+            gurl = f"{url}/models/{settings.model}:generateContent{sep}key={settings.api_key}"
+            payload = {
+                "system_instruction": {"parts": [{"text": system_prompt}]},
+                "contents": [{"parts": [{"text": user_prompt}]}],
+                "generationConfig": {"temperature": settings.temperature, "topP": settings.top_p,
+                                     "maxOutputTokens": settings.max_tokens},
+            }
+            with httpx.Client(timeout=timeout, headers=headers) as client:
+                resp = client.post(gurl, json=payload)
+            if resp.status_code >= 400:
+                raise ProviderError("Provider error", f"Ошибка Google ({resp.status_code}): {resp.text[:300]}")
+            data = resp.json()
+            try:
+                parts = data["candidates"][0]["content"]["parts"]
+                return "".join(p.get("text", "") for p in parts) or ""
+            except (KeyError, IndexError, TypeError):
+                return ""
         if provider == "ollama":
             payload: dict[str, Any] = {
                 "model": settings.model,
@@ -115,7 +194,7 @@ def chat(
             }
             if use_json:
                 payload["format"] = "json"
-            with httpx.Client(timeout=timeout, headers=_headers(settings.api_key)) as client:
+            with httpx.Client(timeout=timeout, headers=headers) as client:
                 resp = client.post(f"{url}/api/chat", json=payload)
                 if resp.status_code >= 400 and use_json and "format" in resp.text.lower():
                     # Старые/мелкие модели Ollama не поддерживают format=json —
@@ -152,7 +231,7 @@ def chat(
         }
         if use_json:
             payload["response_format"] = {"type": "json_object"}
-        with httpx.Client(timeout=timeout, headers=_headers(settings.api_key)) as client:
+        with httpx.Client(timeout=timeout, headers=headers) as client:
             resp = client.post(f"{url}/chat/completions", json=payload)
             if resp.status_code >= 400 and use_json and "response_format" in resp.text:
                 payload.pop("response_format", None)
