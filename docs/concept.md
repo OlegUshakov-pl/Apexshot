@@ -140,4 +140,6 @@ The user interacts with the system through a **Web UI** (or CLI/API), without in
 4.  **Privacy:** the ability to use local models (Ollama/LM Studio) means that sensitive data (engineering details, internal documentation) does not leave the local network if the user configures the system that way.
 
 
+Author: Oleg Ushakov
+Email: olegushakov38@gmail.com
 Date: 02.10.2026
