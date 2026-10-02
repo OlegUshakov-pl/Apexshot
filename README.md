@@ -1,14 +1,23 @@
-# AI-snapshot
+# ApexShot (ex AI-snapshot)
 
-A local web application that turns local directories into small machine-readable
-JSON snapshots using local LLMs (**Ollama** or **LM Studio**) and provides search over this library.
+A local-first web application that turns local directories into small machine-readable
+JSON snapshots using LLMs and provides search over this library.
 
 - FastAPI + Jinja2 + Tailwind CSS 4 (CDN) + Alpine.js (CDN)
 - SQLite + FTS5 (with `LIKE` fallback)
 - generation: file collection → text cleaning → chunking → LLM → JSON → quote verification → saving
 - no snapshot versions: one directory + one type = one snapshot (replacement without history)
-- no Meilisearch / Docker / cloud — everything runs locally
+- no Meilisearch / Docker / cloud DB — everything runs locally (SQLite + files)
 - trilingual UI: **English** (default), **Polski**, **Русский** — can be switched on the “Settings” page
+
+## Providers
+
+Local: **Ollama** (`http://localhost:11434`), **LM Studio** (`http://localhost:1234/v1`).
+
+Cloud / aggregators (API key in Settings → masked, stored locally): **Anthropic, OpenAI,
+Google AI, Mistral, Groq, DeepSeek, OpenRouter, OpenCode**.
+
+Switching providers does not delete snapshots — `provider`/`model` are just filters in Search.
 
 ## Run
 
@@ -70,8 +79,8 @@ The directory can be moved with the `SHOT_DATA_DIR` environment variable.
 
 ## Configuration
 
-Before the first run, open **Settings**: select `ollama` (`http://localhost:11434`) or
-`lmstudio` (`http://localhost:1234/v1`), specify the model, and test the connection.
+Before the first run, open **Settings**: select a provider, specify the model (or API key
+for cloud providers), and test the connection with “Test”.
 
 In the **“Interface language”** block you can switch the UI language: `English` / `Polski` / `Русский`
 (English by default, the value is stored in the `settings` table).
