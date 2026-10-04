@@ -28,6 +28,7 @@ from ..services import (
     settings_service,
     snapshot_generator,
     snapshot_search,
+    snapshot_sender,
     template_service,
     text_extractor,
 )
@@ -287,6 +288,14 @@ def raw_snapshot(snapshot_id: str) -> Response:
         content=data,
         headers={"Content-Disposition": f'attachment; filename="{snapshot_id}.json"'},
     )
+
+
+@api.post("/snapshots/{snapshot_id}/send")
+def send_snapshot(snapshot_id: str) -> dict:
+    result = snapshot_sender.send_snapshot(snapshot_id)
+    if not result.ok:
+        raise _error(502, "Send failed", result.error or "Не удалось отправить слепок")
+    return {"sent": True, "status_code": result.status_code}
 
 
 @api.delete("/snapshots/{snapshot_id}")

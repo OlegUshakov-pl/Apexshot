@@ -118,6 +118,7 @@ DEFAULTS = {
     "json_mode": 1,
     "max_input_chars": 12000,
     "max_chunk_chars": 6000,
+    "server_url": "",
     "default_templates_json": "{}",
 }
 

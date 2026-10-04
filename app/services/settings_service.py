@@ -27,6 +27,7 @@ def _row_to_settings(row: Any) -> SettingsOut:
         json_mode=bool(row["json_mode"]),
         max_input_chars=row["max_input_chars"],
         max_chunk_chars=row["max_chunk_chars"],
+        server_url=row["server_url"] if "server_url" in keys else "",
         default_templates=defaults,
     )
 
@@ -54,7 +55,8 @@ def update_settings(payload: SettingsUpdate) -> SettingsOut:
             UPDATE settings SET
               provider = ?, base_url = ?, api_key = ?, model = ?, language = ?, temperature = ?,
               top_p = ?, seed = ?, max_tokens = ?, timeout_seconds = ?, json_mode = ?,
-              max_input_chars = ?, max_chunk_chars = ?, default_templates_json = ?, updated_at = ?
+              max_input_chars = ?, max_chunk_chars = ?, server_url = ?,
+              default_templates_json = ?, updated_at = ?
             WHERE id = 1
             """,
             (
@@ -71,6 +73,7 @@ def update_settings(payload: SettingsUpdate) -> SettingsOut:
                 1 if payload.json_mode else 0,
                 payload.max_input_chars,
                 payload.max_chunk_chars,
+                (payload.server_url or "").strip(),
                 json.dumps(defaults, ensure_ascii=False),
                 database.now_iso(),
             ),

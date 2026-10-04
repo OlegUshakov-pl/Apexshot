@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS settings (
   json_mode INTEGER NOT NULL DEFAULT 1,
   max_input_chars INTEGER NOT NULL DEFAULT 12000,
   max_chunk_chars INTEGER NOT NULL DEFAULT 6000,
+  server_url TEXT NOT NULL DEFAULT '',
   default_templates_json TEXT NOT NULL DEFAULT '{}',
   updated_at TEXT NOT NULL
 );
@@ -192,6 +193,10 @@ def _migrate(conn: sqlite3.Connection) -> None:
         conn.execute(
             "ALTER TABLE settings ADD COLUMN language TEXT NOT NULL DEFAULT 'en'"
         )
+    if "server_url" not in columns:
+        conn.execute(
+            "ALTER TABLE settings ADD COLUMN server_url TEXT NOT NULL DEFAULT ''"
+        )
 
 
 def _seed_settings(conn: sqlite3.Connection) -> None:
@@ -203,10 +208,10 @@ def _seed_settings(conn: sqlite3.Connection) -> None:
         """
         INSERT INTO settings (id, provider, base_url, api_key, model, language, temperature, top_p,
           seed, max_tokens, timeout_seconds, json_mode, max_input_chars, max_chunk_chars,
-          default_templates_json, updated_at)
+          server_url, default_templates_json, updated_at)
         VALUES (1, :provider, :base_url, :api_key, :model, :language, :temperature, :top_p,
           :seed, :max_tokens, :timeout_seconds, :json_mode, :max_input_chars, :max_chunk_chars,
-          :default_templates_json, :updated_at)
+          :server_url, :default_templates_json, :updated_at)
         """,
         {**defaults, "updated_at": now_iso()},
     )

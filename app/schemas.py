@@ -21,6 +21,7 @@ class SettingsOut(BaseModel):
     json_mode: bool = True
     max_input_chars: int = 12000
     max_chunk_chars: int = 6000
+    server_url: str = ""
     default_templates: dict[str, Optional[int]] = Field(default_factory=dict)
 
 
@@ -38,6 +39,7 @@ class SettingsUpdate(BaseModel):
     json_mode: bool = True
     max_input_chars: int = 12000
     max_chunk_chars: int = 6000
+    server_url: str = ""
     default_templates: dict[str, Optional[int]] = Field(default_factory=dict)
 
 

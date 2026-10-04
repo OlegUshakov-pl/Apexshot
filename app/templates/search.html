@@ -97,9 +97,15 @@
           </div>
         </div>
 
-        <div class="flex gap-2 mt-4">
+        <div class="flex flex-wrap items-center gap-2 mt-4">
           <a :href="'/snapshots/' + item.snapshot_id" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium hover:bg-blue-700">{{ t('Открыть') }}</a>
           <a :href="'/api/snapshots/' + item.snapshot_id + '/raw'" class="px-3 py-1.5 bg-white border border-gray-300 text-xs font-medium hover:bg-gray-50">{{ t('Скачать JSON') }}</a>
+          <button @click="sendItem(item)" :disabled="sending[item.snapshot_id]"
+                  class="px-3 py-1.5 bg-green-600 text-white text-xs font-medium hover:bg-green-700 disabled:opacity-50">
+            <span x-show="!sending[item.snapshot_id]">{{ t('Послать') }}</span><span x-show="sending[item.snapshot_id]">…</span>
+          </button>
+          <span class="text-xs" x-show="sendMsg[item.snapshot_id]" x-text="sendMsg[item.snapshot_id]"
+                :class="(sendOk[item.snapshot_id] ? 'text-green-600' : 'text-red-500')"></span>
         </div>
       </div>
     </template>
@@ -126,6 +132,7 @@
 function searchPage() {
   return {
     query: '', items: [], total: 0, limit: 20, offset: 0, loading: false,
+    sending: {}, sendMsg: {}, sendOk: {},
     models: [], templates: [],
     filters: {type:'', provider:'', model:'', template_id:'', min_confidence:0, max_age_days:''},
     get page() { return Math.floor(this.offset / this.limit) + 1; },
@@ -166,6 +173,24 @@ function searchPage() {
     },
     nextPage() { if (this.offset + this.limit < this.total) { this.offset += this.limit; this.run(); } },
     prevPage() { if (this.offset > 0) { this.offset = Math.max(0, this.offset - this.limit); this.run(); } },
+    async sendItem(item) {
+      const id = item.snapshot_id;
+      this.sending[id] = true; this.sendMsg[id] = '';
+      try {
+        const res = await fetch('/api/snapshots/' + encodeURIComponent(id) + '/send', {method: 'POST'});
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          this.sendOk[id] = true;
+          this.sendMsg[id] = tr('Отправлено') + (data.status_code ? ' (' + data.status_code + ')' : '');
+        } else {
+          this.sendOk[id] = false;
+          const d = (data.detail && (data.detail.detail || data.detail.error)) || data.detail || '';
+          this.sendMsg[id] = d ? String(d) : tr('Ошибка отправки');
+        }
+      } catch (e) { this.sendOk[id] = false; this.sendMsg[id] = String(e); }
+      this.sending[id] = false;
+      setTimeout(() => { this.sendMsg[id] = ''; }, 6000);
+    },
     barClass(v) { const p = (v || 0) * 100; return p >= 75 ? 'bg-green-500' : (p >= 50 ? 'bg-amber-500' : 'bg-red-400'); }
   }
 }
