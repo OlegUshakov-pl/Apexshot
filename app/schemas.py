@@ -117,6 +117,10 @@ class SnapshotFromUrl(BaseModel):
     max_chars: Optional[int] = None
 
 
+class SourceUrlUpdate(BaseModel):
+    source_url: str = ""
+
+
 class JobOut(BaseModel):
     id: int
     snapshot_type: str

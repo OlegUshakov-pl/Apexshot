@@ -11,9 +11,29 @@
       <div class="min-w-0">
         <h1 class="text-2xl font-bold text-gray-900" x-text="snap?.title || snap?.snapshot_id"></h1>
         <div class="text-sm text-gray-500 mt-1" x-text="snap?.directory_path"></div>
-        <div class="text-sm mt-1" x-show="snap?.source_url">
-          <a :href="snap?.source_url" target="_blank" rel="noopener" class="text-blue-600 hover:underline break-all" x-text="snap?.source_url"></a>
-          <span x-show="isLocalUrl(snap?.source_url)" class="ml-2 inline-flex items-center px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700">localhost — {{ t('отправка запрещена') }}</span>
+        <div class="text-sm mt-1" x-show="snap && (snap?.source_url || editingUrl)">
+          <template x-if="!editingUrl">
+            <span>
+              <a :href="snap?.source_url" target="_blank" rel="noopener" class="text-blue-600 hover:underline break-all" x-text="snap?.source_url"></a>
+              <button @click="startUrlEdit()" class="ml-2 text-xs text-gray-500 underline hover:text-blue-600">{{ t('Изменить') }}</button>
+              <span x-show="isLocalUrl(snap?.source_url)" class="ml-2 inline-flex items-center px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700">localhost — {{ t('отправка запрещена') }}</span>
+            </span>
+          </template>
+          <template x-if="editingUrl">
+            <span class="block">
+              <span class="flex gap-2">
+                <input x-model="urlDraft" @keydown.enter="saveUrl()" @keydown.escape="editingUrl = false"
+                       class="flex-1 border border-gray-300 px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500"
+                       placeholder="https://github.com/user/repo">
+                <button @click="saveUrl()" :disabled="savingUrl"
+                        class="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 disabled:opacity-50">{{ t('Сохранить') }}</button>
+                <button @click="editingUrl = false; urlError = ''"
+                        class="px-3 py-1.5 bg-white border border-gray-300 text-xs font-medium hover:bg-gray-50">{{ t('Отмена') }}</button>
+              </span>
+              <span x-show="urlError" class="block text-xs text-red-600 mt-1" x-text="urlError"></span>
+              <span x-show="!urlError && isLocalUrl(urlDraft)" class="block text-xs text-red-600 mt-1">{{ t('Локальный адрес сохранится, но отправка на сервер будет запрещена.') }}</span>
+            </span>
+          </template>
         </div>
         <div class="text-sm mt-1 text-amber-600" x-show="snap && !snap?.source_url">{{ t('У слепка нет source_url (создан до обновления)') }}</div>
         <div class="flex flex-wrap gap-2 mt-3 text-xs text-gray-500">
@@ -204,6 +224,10 @@ function detail(snapshotId) {
     tab: 'overview',
     error: '',
     copied: false,
+    editingUrl: false,
+    urlDraft: '',
+    urlError: '',
+    savingUrl: false,
     tabs: [
       {key: 'overview', label: tr('Overview')},
       {key: 'facts', label: tr('Facts')},
@@ -242,6 +266,39 @@ function detail(snapshotId) {
         const data = await res.json();
         this.error = (data.detail && data.detail.detail) || tr('Ошибка удаления');
       }
+    },
+    startUrlEdit() {
+      this.urlDraft = this.snap?.source_url || '';
+      this.urlError = '';
+      this.editingUrl = true;
+    },
+    async saveUrl() {
+      this.urlError = '';
+      const value = (this.urlDraft || '').trim();
+      try {
+        const u = new URL(value);
+        if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error('bad');
+      } catch (e) {
+        this.urlError = tr('Укажите корректную http(s)-ссылку');
+        return;
+      }
+      this.savingUrl = true;
+      try {
+        const res = await fetch('/api/snapshots/' + this.snapshotId + '/source_url', {
+          method: 'PATCH', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({source_url: value})
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          this.snap.source_url = data.source_url || value;
+          this.editingUrl = false;
+        } else {
+          this.urlError = (data.detail && (data.detail.detail || data.detail.error)) || data.detail || tr('Ошибка сохранения');
+        }
+      } catch (e) {
+        this.urlError = tr('Ошибка запроса:') + ' ' + e;
+      }
+      this.savingUrl = false;
     }
   }
 }

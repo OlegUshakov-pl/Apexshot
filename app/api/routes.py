@@ -24,6 +24,7 @@ from ..schemas import (
     SnapshotCreate,
     SnapshotFromUrl,
     SnapshotListOut,
+    SourceUrlUpdate,
     TemplateIn,
     TemplateOut,
     TemplateTestIn,
@@ -313,6 +314,16 @@ def list_snapshots(
         offset=offset,
     )
     return SnapshotListOut(**result)
+
+
+@api.patch("/snapshots/{snapshot_id}/source_url")
+def patch_source_url(snapshot_id: str, payload: SourceUrlUpdate) -> dict:
+    try:
+        norm = snapshot_generator.update_source_url(snapshot_id, payload.source_url)
+    except snapshot_generator.GenerationError as exc:
+        status = 404 if exc.message == "Snapshot not found" else 400
+        raise _error(status, exc.message, exc.detail)
+    return {"updated": True, "source_url": norm}
 
 
 @api.get("/snapshots/{snapshot_id}")

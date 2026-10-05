@@ -727,6 +727,81 @@ def _save_snapshot(
     return snapshot_id
 
 
+def update_source_url(snapshot_id: str, source_url: str) -> str:
+    """Меняет только source_url: валидирует, обновляет SQLite, FTS и raw-JSON.
+
+    Локальные адреса сохранять можно (блокируется только отправка на сервер).
+    Верифицированный контент не трогается.
+    """
+    norm = normalize_source_url((source_url or "").strip())
+    if not is_valid_source_url(norm):
+        raise GenerationError(
+            "Invalid source URL",
+            i18n.t("source_url должен быть http(s)-ссылкой"),
+        )
+    with database.db() as conn:
+        row = conn.execute(
+            "SELECT * FROM snapshots WHERE snapshot_id = ?", (snapshot_id,)
+        ).fetchone()
+        if not row:
+            raise GenerationError(
+                "Snapshot not found",
+                i18n.t("Слепок {id} не найден", id=snapshot_id),
+            )
+        old = row["source_url"] if "source_url" in row.keys() else ""
+        search_text = _swap_trailing_url(row["search_text"] or "", old, norm)
+        conn.execute(
+            "UPDATE snapshots SET source_url = ?, search_text = ?, updated_at = ?"
+            " WHERE snapshot_id = ?",
+            (norm, search_text, database.now_iso(), snapshot_id),
+        )
+        try:
+            facts = json.loads(row["facts_json"] or "[]")
+        except (json.JSONDecodeError, ValueError):
+            facts = []
+        try:
+            questions = json.loads(row["questions_json"] or "[]")
+        except (json.JSONDecodeError, ValueError):
+            questions = []
+        try:
+            tags = json.loads(row["tags_json"] or "[]")
+        except (json.JSONDecodeError, ValueError):
+            tags = []
+        _index_fts(
+            conn,
+            snapshot_id=snapshot_id,
+            title=row["title"] or "",
+            directory=row["normalized_directory"] or "",
+            search_text=search_text,
+            summary=row["summary"] or "",
+            facts_text=" ".join(
+                f"{f.get('claim', '')} {f.get('quote', '')}"
+                for f in facts
+                if isinstance(f, dict)
+            ),
+            tags_text=" ".join(str(t) for t in tags if isinstance(t, str)),
+            questions_text=" ".join(str(q) for q in questions if isinstance(q, str)),
+        )
+    from .snapshot_search import read_raw
+
+    data = read_raw(snapshot_id)
+    if data is not None:
+        data["source_url"] = norm
+        data["search_text"] = _swap_trailing_url(
+            str(data.get("search_text") or ""), old, norm
+        )
+        path = config.SNAPSHOTS_DIR / f"{snapshot_id}.json"
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    return norm
+
+
+def _swap_trailing_url(search_text: str, old: str, new: str) -> str:
+    text = (search_text or "").strip()
+    if old and text.endswith(old):
+        text = text[: -len(old)].rstrip()
+    return f"{text} {new}".strip()
+
+
 def _index_fts(conn: Any, **fields: Any) -> None:
     if not database.fts_available(conn):
         return
