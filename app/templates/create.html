@@ -21,16 +21,18 @@
     <div x-show="mode === 'dir'">
       <label class="block text-sm font-medium text-gray-700 mb-1" for="directory">{{ t('Директория') }}</label>
       <input id="directory" x-ref="directory" x-model="form.directory" @input.debounce.300ms="checkExists()"
+              :required="mode === 'dir'"
               class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="/home/user/articles" required>
+              placeholder="/home/user/articles">
       <p class="text-xs text-gray-500 mt-1">{{ t('Укажите локальную папку, по которой нужно создать слепок') }}</p>
     </div>
 
     <div x-show="mode === 'url'">
       <label class="block text-sm font-medium text-gray-700 mb-1" for="page_url">{{ t('URL страницы') }}</label>
       <input id="page_url" x-model="form.page_url" @input.debounce.300ms="checkExists(); onSourceInput()"
+              :required="mode === 'url'"
               class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="https://example.com/page" required>
+              placeholder="https://example.com/page">
       <p class="text-xs text-gray-500 mt-1">{{ t('Страница будет скачана, а source_url подставится автоматически') }}</p>
     </div>
 
