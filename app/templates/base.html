@@ -9,6 +9,15 @@
   <script>
     window.LANG = {{ lang | default('en') | tojson }};
     window.I18N = {{ t_dict | default({}) | tojson }};
+    window.isLocalUrl = function (url) {
+      try {
+        var h = new URL((url || '').trim()).hostname.toLowerCase();
+        if (!h) return false;
+        if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '::1' || h === '[::1]') return true;
+        if (h.indexOf('127.') === 0 || h.slice(-10) === '.localhost') return true;
+        return false;
+      } catch (e) { return false; }
+    };
     window.tr = function (key, vars) {
       var text = (window.I18N && window.I18N[key] !== undefined) ? window.I18N[key] : key;
       if (vars) {

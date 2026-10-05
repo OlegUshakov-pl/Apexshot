@@ -149,6 +149,7 @@ TEMPLATE_DESCRIPTIONS = {
     "general": "Универсальный шаблон для любых директорий",
     "software": "Шаблон для проектов приложений: README, стек, запуск, фичи, скриншоты",
     "site": "Шаблон для сайтов: страницы, навигация, дизайн, стек, скриншоты",
+    "webpage": "Шаблон для слепка веб-страницы по URL: контент, структура, ссылки",
 }
 
 SOFTWARE_SYSTEM_PROMPT = BASE_SYSTEM_PROMPT + """
@@ -205,9 +206,30 @@ SITE_USER_PROMPT = """Сформируй Site Snapshot сайта.
 Верни строго JSON по схеме:
 {schema}"""
 
+WEBPAGE_SYSTEM_PROMPT = BASE_SYSTEM_PROMPT + """
+
+Дополнительно для Webpage Snapshot:
+1. Источник — одна веб-страница: опиши её содержание, структуру и назначение.
+2. technologies: только то, что явно видно в тексте (фреймворки, CMS, аналитика).
+3. В sections сделай до 4 из: Обзор / Содержание / Структура и навигация / Ссылки и контакты.
+4. facts: заголовки, ключевые утверждения, ссылки, контакты — каждый с точной quote."""
+
+WEBPAGE_USER_PROMPT = """Сформируй Webpage Snapshot страницы.
+
+Тип: {type}
+URL страницы: {directory}
+Файлы: {files}
+
+Исходный текст страницы:
+{text}
+
+Верни строго JSON по схеме:
+{schema}"""
+
 _TYPE_PROMPTS = {
     "software": (SOFTWARE_SYSTEM_PROMPT, SOFTWARE_USER_PROMPT),
     "site": (SITE_SYSTEM_PROMPT, SITE_USER_PROMPT),
+    "webpage": (WEBPAGE_SYSTEM_PROMPT, WEBPAGE_USER_PROMPT),
 }
 
 
@@ -225,6 +247,7 @@ def build_default_templates() -> list[dict]:
         "general",
         "software",
         "site",
+        "webpage",
     ]:
         system_prompt, user_prompt = _TYPE_PROMPTS.get(
             type_key, (BASE_SYSTEM_PROMPT, DEFAULT_USER_PROMPT)

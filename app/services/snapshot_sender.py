@@ -5,8 +5,9 @@ from typing import Any, Optional
 
 import httpx
 
+from ..models import is_local_url
 from . import settings_service
-from .snapshot_search import read_raw
+from .snapshot_search import get_snapshot, read_raw
 
 
 @dataclass
@@ -23,6 +24,21 @@ def send_snapshot(snapshot_id: str, server_url: Optional[str] = None, timeout: f
     data: Optional[dict[str, Any]] = read_raw(snapshot_id)
     if data is None:
         return SendResult(ok=False, error=f"JSON-файл слепка {snapshot_id} не найден")
+    source_url = str(data.get("source_url") or "").strip()
+    if not source_url:
+        row = get_snapshot(snapshot_id)
+        if row:
+            source_url = str(row.get("source_url") or "").strip()
+    if not source_url:
+        return SendResult(
+            ok=False,
+            error="У слепка нет source_url — отправка запрещена. Пересоздайте слепок с ссылкой на сайт.",
+        )
+    if is_local_url(source_url):
+        return SendResult(
+            ok=False,
+            error=f"source_url {source_url} — локальный адрес, отправка на сервер запрещена.",
+        )
     try:
         resp = httpx.post(url, json=data, timeout=timeout)
     except httpx.HTTPError as exc:

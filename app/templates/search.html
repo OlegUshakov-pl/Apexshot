@@ -24,6 +24,8 @@
           <option value="article">article</option><option value="documentation">documentation</option>
           <option value="news">news</option><option value="forum">forum</option>
           <option value="notes">notes</option><option value="general">general</option>
+          <option value="software">software</option><option value="site">site</option>
+          <option value="webpage">webpage</option>
         </select>
       </div>
       <div>
@@ -72,6 +74,8 @@
             <a :href="'/snapshots/' + item.snapshot_id" class="font-semibold text-gray-900 hover:text-blue-600" x-text="item.title || item.snapshot_id"></a>
             <div class="text-xs text-gray-500 mt-1 flex flex-wrap gap-3">
               <span x-text="item.directory"></span>
+              <a x-show="item.source_url" :href="item.source_url" target="_blank" rel="noopener"
+                 class="text-blue-600 hover:underline" x-text="item.source_url"></a>
               <span x-text="item.updated_at"></span>
               <span x-text="item.provider + ' / ' + item.model"></span>
               <span x-show="item.template_name" x-text="item.template_name"></span>
@@ -100,8 +104,10 @@
         <div class="flex flex-wrap items-center gap-2 mt-4">
           <a :href="'/snapshots/' + item.snapshot_id" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium hover:bg-blue-700">{{ t('Открыть') }}</a>
           <a :href="'/api/snapshots/' + item.snapshot_id + '/raw'" class="px-3 py-1.5 bg-white border border-gray-300 text-xs font-medium hover:bg-gray-50">{{ t('Скачать JSON') }}</a>
-          <button @click="sendItem(item)" :disabled="sending[item.snapshot_id]"
-                  class="px-3 py-1.5 bg-green-600 text-white text-xs font-medium hover:bg-green-700 disabled:opacity-50">
+          <button @click="sendItem(item)" :disabled="sending[item.snapshot_id] || isLocalUrl(item.source_url)"
+                  :title="isLocalUrl(item.source_url) ? tr('Локальный source_url — отправка запрещена') : ''"
+                  class="px-3 py-1.5 text-xs font-medium disabled:opacity-50"
+                  :class="isLocalUrl(item.source_url) ? 'bg-red-100 text-red-700 border border-red-300' : 'bg-green-600 text-white hover:bg-green-700'">
             <span x-show="!sending[item.snapshot_id]">{{ t('Послать') }}</span><span x-show="sending[item.snapshot_id]">…</span>
           </button>
           <span class="text-xs" x-show="sendMsg[item.snapshot_id]" x-text="sendMsg[item.snapshot_id]"

@@ -11,6 +11,11 @@
       <div class="min-w-0">
         <h1 class="text-2xl font-bold text-gray-900" x-text="snap?.title || snap?.snapshot_id"></h1>
         <div class="text-sm text-gray-500 mt-1" x-text="snap?.directory_path"></div>
+        <div class="text-sm mt-1" x-show="snap?.source_url">
+          <a :href="snap?.source_url" target="_blank" rel="noopener" class="text-blue-600 hover:underline break-all" x-text="snap?.source_url"></a>
+          <span x-show="isLocalUrl(snap?.source_url)" class="ml-2 inline-flex items-center px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700">localhost — {{ t('отправка запрещена') }}</span>
+        </div>
+        <div class="text-sm mt-1 text-amber-600" x-show="snap && !snap?.source_url">{{ t('У слепка нет source_url (создан до обновления)') }}</div>
         <div class="flex flex-wrap gap-2 mt-3 text-xs text-gray-500">
           <span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800" x-text="snap?.snapshot_type"></span>
           <span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-gray-100 text-gray-700" x-text="(snap?.provider || '') + ' / ' + (snap?.model || '')"></span>
@@ -154,6 +159,7 @@
       <div x-show="tab === 'metadata'" class="space-y-4">
         <dl class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
           <div><dt class="text-gray-400 text-xs uppercase">snapshot_id</dt><dd class="font-mono" x-text="snap?.snapshot_id"></dd></div>
+          <div><dt class="text-gray-400 text-xs uppercase">source_url</dt><dd class="break-all" x-text="snap?.source_url || '—'"></dd></div>
           <div><dt class="text-gray-400 text-xs uppercase">provider</dt><dd x-text="snap?.provider"></dd></div>
           <div><dt class="text-gray-400 text-xs uppercase">model</dt><dd x-text="snap?.model"></dd></div>
           <div><dt class="text-gray-400 text-xs uppercase">template_id</dt><dd x-text="snap?.template_id + ' · ' + (snap?.template_name || '')"></dd></div>

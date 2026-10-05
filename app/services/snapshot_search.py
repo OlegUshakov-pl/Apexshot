@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from .. import config, database
-from ..models import normalize_directory
+from ..models import is_valid_source_url, normalize_directory, normalize_source_url
 from .snapshot_generator import make_snapshot_id
 
 
@@ -144,6 +144,7 @@ def search_snapshots(
                 "snapshot_id": row["snapshot_id"],
                 "title": row["title"],
                 "directory": row["directory_path"],
+                "source_url": row["source_url"] if "source_url" in row.keys() else "",
                 "type": row["snapshot_type"],
                 "summary": row["summary"],
                 "confidence": row["confidence"],
@@ -244,7 +245,13 @@ def delete_snapshot(snapshot_id: str) -> bool:
 
 
 def exists_for_directory(directory: str, snapshot_type: str) -> Optional[str]:
-    norm = normalize_directory(str(Path(directory).resolve())) if Path(directory).exists() else normalize_directory(directory)
+    raw = (directory or "").strip().strip('"')
+    if is_valid_source_url(raw):
+        norm = normalize_source_url(raw)
+    elif Path(raw).exists():
+        norm = normalize_directory(str(Path(raw).resolve()))
+    else:
+        norm = normalize_directory(raw)
     snapshot_id = make_snapshot_id(norm, snapshot_type)
     snapshot = get_snapshot(snapshot_id)
     return snapshot_id if snapshot else None

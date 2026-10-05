@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS snapshots (
   files_json TEXT NOT NULL DEFAULT '[]',
   content_truncated INTEGER NOT NULL DEFAULT 0,
   search_text TEXT NOT NULL DEFAULT '',
+  source_url TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -86,6 +87,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   id INTEGER PRIMARY KEY,
   snapshot_type TEXT NOT NULL,
   directory_path TEXT NOT NULL,
+  source_url TEXT NOT NULL DEFAULT '',
   template_id INTEGER,
   status TEXT NOT NULL DEFAULT 'pending',
   progress INTEGER NOT NULL DEFAULT 0,
@@ -196,6 +198,16 @@ def _migrate(conn: sqlite3.Connection) -> None:
     if "server_url" not in columns:
         conn.execute(
             "ALTER TABLE settings ADD COLUMN server_url TEXT NOT NULL DEFAULT ''"
+        )
+    snap_columns = {row["name"] for row in conn.execute("PRAGMA table_info(snapshots)")}
+    if "source_url" not in snap_columns:
+        conn.execute(
+            "ALTER TABLE snapshots ADD COLUMN source_url TEXT NOT NULL DEFAULT ''"
+        )
+    job_columns = {row["name"] for row in conn.execute("PRAGMA table_info(jobs)")}
+    if "source_url" not in job_columns:
+        conn.execute(
+            "ALTER TABLE jobs ADD COLUMN source_url TEXT NOT NULL DEFAULT ''"
         )
 
 

@@ -9,12 +9,39 @@
   </div>
 
   <form @submit.prevent="submit()" class="bg-white shadow border border-gray-100 p-6 space-y-4">
-    <div>
+    <div class="flex gap-2">
+      <button type="button" @click="setMode('dir')"
+              :class="mode === 'dir' ? 'bg-blue-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'"
+              class="px-4 py-2 text-sm font-medium">{{ t('Из директории') }}</button>
+      <button type="button" @click="setMode('url')"
+              :class="mode === 'url' ? 'bg-blue-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'"
+              class="px-4 py-2 text-sm font-medium">{{ t('Со страницы (URL)') }}</button>
+    </div>
+
+    <div x-show="mode === 'dir'">
       <label class="block text-sm font-medium text-gray-700 mb-1" for="directory">{{ t('Директория') }}</label>
       <input id="directory" x-ref="directory" x-model="form.directory" @input.debounce.300ms="checkExists()"
-             class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-             placeholder="/home/user/articles" required>
+              class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="/home/user/articles" required>
       <p class="text-xs text-gray-500 mt-1">{{ t('Укажите локальную папку, по которой нужно создать слепок') }}</p>
+    </div>
+
+    <div x-show="mode === 'url'">
+      <label class="block text-sm font-medium text-gray-700 mb-1" for="page_url">{{ t('URL страницы') }}</label>
+      <input id="page_url" x-model="form.page_url" @input.debounce.300ms="checkExists(); onSourceInput()"
+              class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="https://example.com/page" required>
+      <p class="text-xs text-gray-500 mt-1">{{ t('Страница будет скачана, а source_url подставится автоматически') }}</p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1" for="source_url">source_url</label>
+      <input id="source_url" x-model="form.source_url" @input="onSourceInput()" :readonly="mode === 'url'"
+              :class="(isLocal && form.source_url) ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'"
+              class="w-full border px-3 py-2 focus:ring-2"
+              :placeholder="mode === 'url' ? tr('Подставится из URL страницы') : 'https://github.com/user/repo'" required>
+      <p class="text-xs text-gray-500 mt-1">{{ t('Ссылка на сайт/репозиторий. Обязательное поле, попадёт в слепок.') }}</p>
+      <p x-show="isLocal && form.source_url" x-cloak class="text-xs text-red-600 font-medium mt-1">{{ t('Локальный адрес — отправка такого слепка на сервер будет запрещена.') }}</p>
     </div>
 
     <div class="grid sm:grid-cols-3 gap-4">
@@ -28,12 +55,15 @@
           <option value="forum">forum</option>
           <option value="notes">notes</option>
           <option value="general">general</option>
+          <option value="software">software</option>
+          <option value="site">site</option>
+          <option value="webpage">webpage</option>
         </select>
       </div>
-      <div>
+      <div x-show="mode === 'dir'">
         <label class="block text-sm font-medium text-gray-700 mb-1" for="max_files">{{ t('Макс. файлов') }}</label>
         <input id="max_files" type="number" min="1" max="5000" x-model.number="form.max_files"
-               class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                class="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1" for="max_chars">{{ t('Лимит символов') }}</label>
@@ -131,7 +161,9 @@
 function creator() {
   const ORDER = ['queued','checking_directory','collecting_files','extracting_text','generating','parsing_json','verifying_quotes','saving','done'];
   return {
-    form: {directory: '', snapshot_type: 'article', max_files: 200, max_chars: null},
+    mode: 'dir',
+    isLocal: false,
+    form: {directory: '', page_url: '', source_url: '', snapshot_type: 'article', max_files: 200, max_chars: null},
     steps: ORDER.map(k => ({key: k, label: {
       queued: tr('Очередь'), checking_directory: tr('Проверка директории'), collecting_files: tr('Сбор файлов'),
       extracting_text: tr('Очистка текста'), generating: tr('Генерация'), parsing_json: tr('Проверка JSON'),
@@ -144,29 +176,67 @@ function creator() {
     result: null,
     timer: null,
     async checkExists() {
-      if (!this.form.directory || !this.form.directory.trim()) { this.exists = false; return; }
+      const key = this.mode === 'url' ? this.form.page_url : this.form.directory;
+      if (!key || !key.trim()) { this.exists = false; return; }
       try {
-        const url = `/api/snapshots/exists?directory=${encodeURIComponent(this.form.directory)}&snapshot_type=${this.form.snapshot_type}`;
+        const url = `/api/snapshots/exists?directory=${encodeURIComponent(key.trim())}&snapshot_type=${this.form.snapshot_type}`;
         const res = await fetch(url).then(r => r.json());
         this.exists = !!res.exists;
       } catch (e) { this.exists = false; }
+    },
+    setMode(m) {
+      this.mode = m;
+      this.error = '';
+      if (m === 'url' && this.form.snapshot_type !== 'webpage') this.form.snapshot_type = 'webpage';
+      if (m === 'url') this.form.source_url = (this.form.page_url || '').trim();
+      this.onSourceInput();
+      this.checkExists();
+    },
+    onSourceInput() {
+      this.isLocal = isLocalUrl(this.form.source_url);
+      if (this.mode === 'url') this.form.source_url = (this.form.page_url || '').trim();
+    },
+    validHttpUrl(s) {
+      try {
+        const u = new URL((s || '').trim());
+        return u.protocol === 'http:' || u.protocol === 'https:';
+      } catch (e) { return false; }
     },
     async submit() {
       this.error = '';
       this.result = null;
       this.job = null;
-      if (!this.form.directory || !this.form.directory.trim()) {
-        this.error = tr('Укажите директорию'); return;
+      if (this.mode === 'url') {
+        if (!this.validHttpUrl(this.form.page_url)) {
+          this.error = tr('Укажите корректную http(s)-ссылку на страницу'); return;
+        }
+        this.form.source_url = this.form.page_url.trim();
+        this.onSourceInput();
+      } else {
+        if (!this.form.directory || !this.form.directory.trim()) {
+          this.error = tr('Укажите директорию'); return;
+        }
+        if (!this.validHttpUrl(this.form.source_url)) {
+          this.error = tr('Укажите source_url — корректную http(s)-ссылку на сайт'); return;
+        }
       }
       this.busy = true;
       try {
-        const payload = {
-          directory: this.form.directory,
-          snapshot_type: this.form.snapshot_type,
-          max_files: this.form.max_files || 200,
-          max_chars: this.form.max_chars || null
-        };
-        const res = await fetch('/api/snapshots', {
+        const endpoint = this.mode === 'url' ? '/api/snapshots/from-url' : '/api/snapshots';
+        const payload = this.mode === 'url'
+          ? {
+              url: this.form.page_url.trim(),
+              snapshot_type: this.form.snapshot_type,
+              max_chars: this.form.max_chars || null
+            }
+          : {
+              directory: this.form.directory,
+              snapshot_type: this.form.snapshot_type,
+              max_files: this.form.max_files || 200,
+              max_chars: this.form.max_chars || null,
+              source_url: this.form.source_url.trim()
+            };
+        const res = await fetch(endpoint, {
           method: 'POST', headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(payload)
         });

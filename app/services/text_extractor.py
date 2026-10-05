@@ -213,3 +213,38 @@ def collect_media_files(directory: str, max_files: int = 200) -> list[str]:
             continue
         results.append(str(path.relative_to(root)).replace("\\", "/"))
     return results
+
+
+FETCH_MAX_BYTES = 2_000_000
+
+
+def fetch_url_text(url: str, timeout: float = 30.0) -> tuple[str, str, str]:
+    """Скачивает страницу и возвращает (title, text, final_url).
+
+    Бросает httpx.HTTPError при сетевых ошибках и ValueError, если
+    на странице нет извлекаемого текста.
+    """
+    import httpx
+
+    resp = httpx.get(
+        url,
+        timeout=timeout,
+        follow_redirects=True,
+        headers={"User-Agent": "ApexShot/1.0 snapshot-bot"},
+    )
+    resp.raise_for_status()
+    raw = resp.content[:FETCH_MAX_BYTES]
+    head = raw[:2000].lower()
+    ctype = (resp.headers.get("content-type") or "").lower()
+    if "html" in ctype or head.startswith(b"<!doctype") or b"<html" in head:
+        text = raw.decode(resp.encoding or "utf-8", errors="replace")
+        title, text = extract_html(text)
+    else:
+        text = raw.decode(resp.encoding or "utf-8", errors="replace")
+        title = ""
+    text = normalize_text(text)
+    if not text.strip():
+        raise ValueError("empty page text")
+    if not title:
+        title = str(resp.url).rstrip("/") or url
+    return title, text, str(resp.url)

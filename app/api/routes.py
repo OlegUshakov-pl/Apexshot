@@ -8,7 +8,12 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 
 from .. import config, database, i18n
-from ..models import snapshot_type_label, step_label
+from ..models import (
+    is_valid_source_url,
+    normalize_source_url,
+    snapshot_type_label,
+    step_label,
+)
 from ..schemas import (
     HealthOut,
     JobOut,
@@ -17,6 +22,7 @@ from ..schemas import (
     SettingsOut,
     SettingsUpdate,
     SnapshotCreate,
+    SnapshotFromUrl,
     SnapshotListOut,
     TemplateIn,
     TemplateOut,
@@ -202,6 +208,12 @@ def create_snapshot(
     directory = (payload.directory or "").strip().strip('"')
     if not directory:
         raise _error(400, "Directory required", i18n.t("Укажите директорию"))
+    source_url = (payload.source_url or "").strip()
+    if not source_url:
+        raise _error(400, "Source URL required", i18n.t("Укажите source_url — ссылку на сайт/репозиторий"))
+    if not is_valid_source_url(source_url):
+        raise _error(400, "Invalid source URL", i18n.t("source_url должен быть http(s)-ссылкой"))
+    source_url = normalize_source_url(source_url)
     path = Path(directory)
     if not path.exists():
         raise _error(400, "Directory not found", i18n.t("Указанная директория не существует или недоступна"))
@@ -218,7 +230,9 @@ def create_snapshot(
                 type=payload.snapshot_type,
             ),
         )
-    job_id = snapshot_generator.create_job(payload.snapshot_type, str(path), template.id)
+    job_id = snapshot_generator.create_job(
+        payload.snapshot_type, str(path), template.id, source_url
+    )
     snapshot_id = snapshot_generator.make_snapshot_id(
         snapshot_generator.normalize_directory(str(path.resolve())), payload.snapshot_type
     )
@@ -226,6 +240,44 @@ def create_snapshot(
         snapshot_generator.run_job,
         job_id,
         payload.max_files,
+        payload.max_chars,
+    )
+    return {"job_id": job_id, "snapshot_id": snapshot_id}
+
+
+@api.post("/snapshots/from-url")
+def create_snapshot_from_url(
+    payload: SnapshotFromUrl, background_tasks: BackgroundTasks
+) -> dict:
+    if payload.snapshot_type not in config.SNAPSHOT_TYPES:
+        raise _error(
+            400,
+            "Invalid type",
+            i18n.t(
+                "Недопустимый тип слепка. Допустимые: {types}",
+                types=", ".join(config.SNAPSHOT_TYPES),
+            ),
+        )
+    url = normalize_source_url((payload.url or "").strip())
+    if not is_valid_source_url(url):
+        raise _error(400, "Invalid URL", i18n.t("Укажите корректную http(s)-ссылку на страницу"))
+    template = template_service.get_active_template(payload.snapshot_type)
+    if template is None:
+        raise _error(
+            409,
+            "No active template",
+            i18n.t(
+                "Для типа {type} нет активного шаблона. "
+                "Создайте или включите шаблон на странице Шаблоны.",
+                type=payload.snapshot_type,
+            ),
+        )
+    job_id = snapshot_generator.create_job(payload.snapshot_type, url, template.id, url)
+    snapshot_id = snapshot_generator.make_snapshot_id(url, payload.snapshot_type)
+    background_tasks.add_task(
+        snapshot_generator.run_job,
+        job_id,
+        200,
         payload.max_chars,
     )
     return {"job_id": job_id, "snapshot_id": snapshot_id}

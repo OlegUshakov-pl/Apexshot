@@ -108,6 +108,13 @@ class SnapshotCreate(BaseModel):
     snapshot_type: str = "general"
     max_files: int = 200
     max_chars: Optional[int] = None
+    source_url: str = ""
+
+
+class SnapshotFromUrl(BaseModel):
+    url: str
+    snapshot_type: str = "webpage"
+    max_chars: Optional[int] = None
 
 
 class JobOut(BaseModel):
@@ -130,6 +137,7 @@ class SnapshotListItem(BaseModel):
     snapshot_id: str
     title: Optional[str] = None
     directory: str
+    source_url: str = ""
     type: str
     summary: Optional[str] = None
     confidence: float = 0.0

@@ -9,7 +9,7 @@ from typing import Any, Optional
 
 from .. import config, database, i18n
 from ..default_prompts import SNAPSHOT_SCHEMA
-from ..models import normalize_directory
+from ..models import is_valid_source_url, normalize_directory, normalize_source_url
 from . import llm_provider, settings_service, template_service, text_extractor
 
 
@@ -347,15 +347,20 @@ def build_search_text(doc: dict[str, Any]) -> str:
     return re.sub(r"\s+", " ", " ".join(p for p in parts if p)).strip()
 
 
-def create_job(snapshot_type: str, directory: str, template_id: Optional[int]) -> int:
+def create_job(
+    snapshot_type: str,
+    directory: str,
+    template_id: Optional[int],
+    source_url: str = "",
+) -> int:
     with database.db() as conn:
         cur = conn.execute(
             """
-            INSERT INTO jobs (snapshot_type, directory_path, template_id, status, progress, step,
-              created_at)
-            VALUES (?, ?, ?, 'pending', 0, 'queued', ?)
+            INSERT INTO jobs (snapshot_type, directory_path, source_url, template_id, status,
+              progress, step, created_at)
+            VALUES (?, ?, ?, ?, 'pending', 0, 'queued', ?)
             """,
-            (snapshot_type, directory, template_id, database.now_iso()),
+            (snapshot_type, directory, source_url, template_id, database.now_iso()),
         )
         return int(cur.lastrowid)
 
@@ -417,15 +422,23 @@ def _run_pipeline(
 ) -> str:
     snapshot_type = job["snapshot_type"]
     directory = str(job["directory_path"]).strip().strip('"')
+    source_url = str(job.get("source_url") or "").strip()
     settings = settings_service.get_settings()
+    max_input_chars = max_chars or settings.max_input_chars
 
-    norm_dir = normalize_directory(str(Path(directory).resolve()))
-    if not Path(directory).exists():
-        raise GenerationError(
-            "Directory not found", i18n.t("Указанная директория не существует или недоступна")
-        )
-    if not Path(directory).is_dir():
-        raise GenerationError("Not a directory", i18n.t("Указанный путь не является директорией"))
+    from_url = is_valid_source_url(directory)
+    if from_url:
+        norm_dir = normalize_source_url(directory)
+        if not source_url:
+            source_url = norm_dir
+    else:
+        norm_dir = normalize_directory(str(Path(directory).resolve()))
+        if not Path(directory).exists():
+            raise GenerationError(
+                "Directory not found", i18n.t("Указанная директория не существует или недоступна")
+            )
+        if not Path(directory).is_dir():
+            raise GenerationError("Not a directory", i18n.t("Указанный путь не является директорией"))
 
     template = template_service.get_template(job["template_id"]) if job["template_id"] else None
     if template is None:
@@ -441,20 +454,37 @@ def _run_pipeline(
         )
 
     update_job(job_id, step="collecting_files", progress=15)
-    max_input_chars = max_chars or settings.max_input_chars
-    files = text_extractor.collect_files(directory, max_files)
-    if not files:
-        raise GenerationError(
-            "No files", i18n.t("В директории не найдено файлов, которые можно прочитать")
-        )
+    if from_url:
+        update_job(job_id, step="extracting_text", progress=30)
+        try:
+            page_title, page_text, final_url = text_extractor.fetch_url_text(directory)
+        except ValueError:
+            raise GenerationError(
+                "No text", i18n.t("На странице нет текста, из которого можно сделать слепок")
+            )
+        except Exception as exc:
+            raise GenerationError(
+                "Fetch failed",
+                i18n.t("Не удалось скачать страницу: {error}", error=exc),
+            )
+        docs = [text_extractor.Document(file=final_url, title=page_title, text=page_text)]
+        media_list: list[str] = []
+        corpus = f"### Страница: {final_url}\nЗаголовок: {page_title}\n\n{page_text}"
+    else:
+        files = text_extractor.collect_files(directory, max_files)
+        if not files:
+            raise GenerationError(
+                "No files", i18n.t("В директории не найдено файлов, которые можно прочитать")
+            )
 
-    update_job(job_id, step="extracting_text", progress=30)
-    docs = text_extractor.extract_documents(directory, max_files)
-    if not docs:
-        raise GenerationError(
-            "No text", i18n.t("Не удалось извлечь текст из файлов директории")
-        )
-    corpus = text_extractor.build_corpus(docs, text_extractor.collect_media_files(directory))
+        update_job(job_id, step="extracting_text", progress=30)
+        docs = text_extractor.extract_documents(directory, max_files)
+        if not docs:
+            raise GenerationError(
+                "No text", i18n.t("Не удалось извлечь текст из файлов директории")
+            )
+        media_list = text_extractor.collect_media_files(directory)
+        corpus = text_extractor.build_corpus(docs, media_list)
     original_chars = len(corpus)
     content_truncated = original_chars > max_input_chars
     if content_truncated:
@@ -468,7 +498,7 @@ def _run_pipeline(
         "type": snapshot_type,
         "directory": norm_dir,
         "files": ", ".join(d.file for d in docs[:50]),
-        "media_files": ", ".join(text_extractor.collect_media_files(directory)[:50]) or "—",
+        "media_files": ", ".join(media_list[:50]) or "—",
         "text": corpus_for_prompt,
         "schema": schema_pretty,
         "chunk_index": 1,
@@ -535,10 +565,13 @@ def _run_pipeline(
 
     update_job(job_id, step="saving", progress=95)
     doc["search_text"] = build_search_text(doc)
+    if source_url:
+        doc["search_text"] = f"{doc['search_text']} {source_url}".strip()
     snapshot_id = make_snapshot_id(norm_dir, snapshot_type)
     full_doc = {
         "id": snapshot_id,
         "directory": norm_dir,
+        "source_url": source_url,
         "title": doc["title"],
         "type": snapshot_type,
         "fetched_at": database.now_iso(),
@@ -646,9 +679,9 @@ def _save_snapshot(
               template_name, provider, model, status, error, title, summary, sections_json,
               facts_json, highlights_json, entities_json, questions_json, tags_json, confidence,
               content_hash, original_chars, snapshot_chars, file_count, files_json,
-              content_truncated, search_text, created_at, updated_at
+              content_truncated, search_text, source_url, created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'success', NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-              ?, ?, ?, ?, ?, ?, ?)
+              ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 snapshot_id,
@@ -675,6 +708,7 @@ def _save_snapshot(
                 json.dumps(doc["files"], ensure_ascii=False),
                 1 if doc["content_truncated"] else 0,
                 doc["search_text"],
+                doc.get("source_url", ""),
                 created_at,
                 ts,
             ),
