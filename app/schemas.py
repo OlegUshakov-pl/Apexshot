@@ -57,6 +57,16 @@ class ProviderTestOut(BaseModel):
     error: Optional[str] = None
 
 
+class ServerTestIn(BaseModel):
+    server_url: str = ""
+
+
+class ServerTestOut(BaseModel):
+    reachable: bool = False
+    status_code: Optional[int] = None
+    error: Optional[str] = None
+
+
 class TemplateIn(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 

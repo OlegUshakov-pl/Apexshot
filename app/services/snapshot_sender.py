@@ -17,6 +17,25 @@ class SendResult:
     error: str = ""
 
 
+@dataclass
+class ServerTestResult:
+    reachable: bool = False
+    status_code: Optional[int] = None
+    error: str = ""
+
+
+def test_server(server_url: str, timeout: float = 10.0) -> ServerTestResult:
+    url = (server_url or "").strip()
+    if not url:
+        return ServerTestResult(error="Server URL не задан")
+    try:
+        resp = httpx.get(url, timeout=timeout, follow_redirects=True)
+    except httpx.HTTPError as exc:
+        return ServerTestResult(error=f"Нет соединения: {exc}")
+    # Любой HTTP-ответ (даже 404/405 — адрес ведь для POST) означает, что сервер жив.
+    return ServerTestResult(reachable=True, status_code=resp.status_code)
+
+
 def send_snapshot(snapshot_id: str, server_url: Optional[str] = None, timeout: float = 30.0) -> SendResult:
     url = (server_url or "").strip() or settings_service.get_settings().server_url.strip()
     if not url:

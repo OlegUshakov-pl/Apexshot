@@ -170,6 +170,19 @@
               placeholder="http://localhost:8000/api/add-snapshot">
       <p class="text-xs text-gray-400 mt-1">{{ t('Кнопка «Послать» на странице поиска отправляет JSON слепка POST-запросом на этот адрес.') }}</p>
     </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <button @click="testServer()" :disabled="testingServer"
+              class="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+        <span x-show="!testingServer">{{ t('Тест соединения') }}</span><span x-show="testingServer">{{ t('Проверка…') }}</span>
+      </button>
+      <div class="text-sm" x-show="serverTest">
+        <span class="inline-flex items-center px-3 py-1 text-xs font-medium"
+              :class="serverTest.reachable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+              x-text="serverTest.reachable ? tr('Сервер доступен') : tr('Сервер недоступен')"></span>
+        <span class="text-xs text-gray-500 ml-2" x-show="serverTest.status_code" x-text="'HTTP ' + serverTest.status_code"></span>
+        <span class="text-xs text-red-500 ml-2" x-show="serverTest.error" x-text="serverTest.error"></span>
+      </div>
+    </div>
   </section>
 
   <!-- DEFAULT TEMPLATES -->
@@ -249,6 +262,8 @@ function settingsPage() {
     availableModels: [],
     test: null,
     testing: false,
+    serverTest: null,
+    testingServer: false,
     saving: false,
     message: '',
     ok: true,
@@ -298,6 +313,17 @@ function settingsPage() {
         if (this.test.models) this.availableModels = this.test.models;
       } catch (e) { this.test = {reachable:false, model_available:false, models:[], error:String(e)}; }
       this.testing = false;
+    },
+    async testServer() {
+      this.testingServer = true; this.serverTest = null;
+      try {
+        const res = await fetch('/api/server/test', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({server_url:this.form.server_url})
+        });
+        this.serverTest = await res.json();
+      } catch (e) { this.serverTest = {reachable:false, status_code:null, error:String(e)}; }
+      this.testingServer = false;
     },
     async save(reload) {
       this.saving = true; this.message = '';

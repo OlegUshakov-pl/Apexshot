@@ -19,6 +19,8 @@ from ..schemas import (
     JobOut,
     ProviderTestIn,
     ProviderTestOut,
+    ServerTestIn,
+    ServerTestOut,
     SettingsOut,
     SettingsUpdate,
     SnapshotCreate,
@@ -98,6 +100,11 @@ def provider_test(payload: ProviderTestIn) -> ProviderTestOut:
     return llm_provider.test_connection(
         payload.provider, payload.base_url, payload.api_key, payload.model
     )
+
+
+@api.post("/server/test", response_model=ServerTestOut)
+def server_test(payload: ServerTestIn) -> ServerTestOut:
+    return snapshot_sender.test_server(payload.server_url)
 
 
 # ---------------------------------------------------------------- templates
