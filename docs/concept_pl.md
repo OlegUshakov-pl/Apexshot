@@ -7,7 +7,7 @@ Współczesne wyszukiwanie (w internecie i w korporacyjnych bazach danych) cierp
 *   **Główny punkt bólu:** Informacje są rozproszone. Aby uzyskać odpowiedź, osoba jest zmuszona ręcznie „grzebać".
 
 ## 2. Proponowane rozwiązanie
-**ApexShot** to scentralizowany system wyszukiwania semantycznego oparty na **kopiach AI** (JSON Snapshots).
+**ApexSnap** to scentralizowany system wyszukiwania semantycznego oparty na **kopiach AI** (JSON Snapshots).
 
 System transformuje dowolną treść wejściową (tekst, dokument, kod) w **kompaktowy, ustrukturyzowany plik JSON snapshot** (wielkość 1–20 KB).
 
