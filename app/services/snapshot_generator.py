@@ -33,6 +33,26 @@ STRICT_JSON_PREFIX = (
 _PLACEHOLDER = re.compile(r"\{([a-zA-Z_]+)\}")
 
 
+def _update_search_index(snapshot_id: str, added: bool = True) -> None:
+    """Обновляет гибридный индекс (ChromaDB + BM25) после генерации.
+
+    Никогда не роняет генерацию: собственный сбой индексации — только WARNING.
+    """
+    import logging
+
+    try:
+        from .. import search
+
+        if added:
+            search.on_snapshot_saved(snapshot_id)
+        else:
+            search.on_snapshot_deleted(snapshot_id)
+    except Exception as exc:  # noqa: BLE001 — индексация не критична
+        logging.getLogger("search").warning(
+            "Не удалось обновить поисковый индекс для %s: %s", snapshot_id, exc
+        )
+
+
 def make_snapshot_id(normalized_directory: str, snapshot_type: str) -> str:
     payload = f"{normalized_directory}:{snapshot_type}".encode("utf-8")
     return "snap-" + hashlib.sha256(payload).hexdigest()[:16]
@@ -724,6 +744,7 @@ def _save_snapshot(
             tags_text=" ".join(doc["tags"]),
             questions_text=" ".join(doc["questions"]),
         )
+    _update_search_index(snapshot_id, added=True)
     return snapshot_id
 
 
@@ -792,6 +813,7 @@ def update_source_url(snapshot_id: str, source_url: str) -> str:
         )
         path = config.SNAPSHOTS_DIR / f"{snapshot_id}.json"
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    _update_search_index(snapshot_id, added=True)
     return norm
 
 

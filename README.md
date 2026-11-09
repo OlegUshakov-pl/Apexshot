@@ -65,7 +65,22 @@ GET    /api/snapshots?query=&type=&provider=&model=&template_id=&min_confidence=
 GET    /api/snapshots/{id}      GET /api/snapshots/{id}/raw   DELETE /api/snapshots/{id}
 GET    /api/jobs/{job_id}
 GET    /api/files?directory=
+POST   /api/search              # hybrid search: body {"query", "top_k"} -> {"results", "total", "search_ms"}
 ```
+
+### Hybrid search
+
+`POST /api/search` queries local snapshots (`data/snapshots/*.json`) with a hybrid
+search engine: **ChromaDB** (vector, embeddings via local Ollama `bge-m3`) +
+**BM25** (rank_bm25, full-text) merged with **Reciprocal Rank Fusion** (k=60).
+Each result carries `id, title, summary, source_url, score, matched_fields,
+snippet, degraded`. If Ollama is unavailable, search degrades to BM25-only and
+flags the results with `degraded: true` (no error, no external services).
+The Chrome extension may call `POST /api/search` — CORS is allowed for
+`chrome-extension://` origins. The index is rebuilt on startup, after a new
+snapshot is generated, and after deletion. Sending a snapshot to the server
+does not affect the local index. `data/chroma_data/` holds the vector index
+(`SHOT_CHROMA_DIR` overrides the location).
 
 ## Data
 
@@ -73,9 +88,11 @@ GET    /api/files?directory=
 data/
   snapshots.db        # settings, templates, snapshots, jobs, snapshots_fts
   snapshots/*.json    # snapshots themselves (usually 1–10 KB)
+  chroma_data/        # hybrid search vector index (ChromaDB PersistentClient)
 ```
 
-The directory can be moved with the `SHOT_DATA_DIR` environment variable.
+The directory can be moved with the `SHOT_DATA_DIR` environment variable
+(`SHOT_CHROMA_DIR` for the vector index).
 
 ## Configuration
 

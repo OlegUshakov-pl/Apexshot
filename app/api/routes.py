@@ -16,6 +16,7 @@ from ..models import (
 )
 from ..schemas import (
     HealthOut,
+    HybridSearchHealth,
     JobOut,
     ProviderTestIn,
     ProviderTestOut,
@@ -32,6 +33,7 @@ from ..schemas import (
     TemplateTestIn,
     TemplateTestOut,
 )
+from ..search import search_status
 from ..services import (
     llm_provider,
     settings_service,
@@ -58,6 +60,7 @@ def health() -> HealthOut:
         settings.provider, settings.base_url, settings.api_key, settings.model
     )
     stats = snapshot_search.stats()
+    status = search_status()
     return HealthOut(
         status="ok",
         provider=settings.provider,
@@ -66,6 +69,11 @@ def health() -> HealthOut:
         model_available=test.model_available,
         snapshot_count=stats["total"],
         template_count=stats["template_count"],
+        ollama=HybridSearchHealth(
+            available=status["ollama"]["available"], model=status["ollama"]["model"]
+        ),
+        vector_index_size=status["vector_index_size"],
+        chroma_available=status["chroma_available"],
     )
 
 

@@ -104,6 +104,16 @@ SKIP_FILES = {".DS_Store", "Thumbs.db"}
 
 MAX_FILE_BYTES = 10 * 1024 * 1024
 
+# --- Гибридный поиск (ChromaDB + BM25) ---
+CHROMA_DIR = Path(os.environ.get("SHOT_CHROMA_DIR", DATA_DIR / "chroma_data"))
+SEARCH_COLLECTION = "snapshots"
+SEARCH_EMBED_MODEL = "bge-m3"
+SEARCH_OLLAMA_URL = os.environ.get(
+    "SHOT_SEARCH_OLLAMA_URL", DEFAULT_BASE_URLS["ollama"]
+)
+SEARCH_EMBED_TIMEOUT = 30
+SEARCH_PULL_TIMEOUT = 120
+
 DEFAULTS = {
     "provider": "ollama",
     "base_url": DEFAULT_BASE_URLS["ollama"],

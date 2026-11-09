@@ -172,6 +172,11 @@ class SnapshotListOut(BaseModel):
     items: list[SnapshotListItem] = Field(default_factory=list)
 
 
+class HybridSearchHealth(BaseModel):
+    available: bool = False
+    model: str = ""
+
+
 class HealthOut(BaseModel):
     status: str = "ok"
     provider: str = ""
@@ -180,3 +185,7 @@ class HealthOut(BaseModel):
     model_available: bool = False
     snapshot_count: int = 0
     template_count: int = 0
+    # гибридный поиск (ChromaDB + BM25)
+    ollama: HybridSearchHealth = Field(default_factory=HybridSearchHealth)
+    vector_index_size: int = 0
+    chroma_available: bool = False

@@ -7,4 +7,6 @@ python-multipart
 beautifulsoup4
 lxml
 pypdf
+chromadb>=0.5
+rank_bm25
 pytest

@@ -241,6 +241,12 @@ def delete_snapshot(snapshot_id: str) -> bool:
             path.unlink()
         except OSError:
             pass
+    try:
+        from .. import search
+
+        search.on_snapshot_deleted(snapshot_id)
+    except Exception:  # noqa: BLE001 — удаление не должно падать из-за индекса
+        pass
     return True
 
 
