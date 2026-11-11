@@ -1,11 +1,88 @@
 from __future__ import annotations
 
+import logging
+import time
 from typing import Any, Optional
 
 import httpx
 
 from .. import config, i18n
 from ..schemas import ProviderTestOut, SettingsOut
+
+logger = logging.getLogger("provider")
+
+# --- Автоподбор модели на текущей машине -------------------------------------
+# Настройки (в т.ч. model) общие для всех машин, а модели в локальной Ollama /
+# LM Studio на каждой машине свои. Если сконфигурированной модели нет — берём:
+# 1) модель того же семейства ("gemma4:e4b" -> "gemma4:12b");
+# 2) любую установленную не-эмбеддинговую модель.
+# Таблица подмены кэшируется на короткое время, чтобы не звать /api/tags
+# на каждый чат-вызов, но и не «залипать» на старую раскладку навсегда.
+
+_FALLBACK_TTL = 60.0
+_model_fallback_cache: dict[tuple[str, str, str], tuple[float, str]] = {}
+
+_EMBED_MODEL_HINTS = ("bge", "embed", "minilm", "gte-", "e5-", "jina")
+
+
+def _family(name: str) -> str:
+    """Семейство модели: 'tobestyledintro/qwen:q6' -> 'qwen', 'gemma4:e4b' -> 'gemma4'."""
+    return (name or "").split(":")[0].rsplit("/", 1)[-1].lower()
+
+
+def _is_embedding_model(name: str) -> bool:
+    low = (name or "").lower()
+    return any(hint in low for hint in _EMBED_MODEL_HINTS)
+
+
+def _pick_installed(installed: list[str], model: str) -> str:
+    if model in installed:
+        return model
+    family = _family(model)
+    for candidate in installed:
+        if _family(candidate) == family:
+            return candidate
+    for candidate in installed:
+        if not _is_embedding_model(candidate):
+            return candidate
+    return model
+
+
+def resolve_local_model(
+    provider: str, base_url: str, api_key: str = "", model: str = "", timeout: int = 5
+) -> str:
+    """Возвращает модель, реально установленную на этой машине (для локальных провайдеров).
+
+    Никогда не бросает исключений: при любой проблеме возвращается исходное имя.
+    """
+    if provider not in ("ollama", "lmstudio") or not model:
+        return model
+    key = (provider, base_url or "", model)
+    cached = _model_fallback_cache.get(key)
+    now = time.monotonic()
+    if cached and now - cached[0] < _FALLBACK_TTL:
+        return cached[1]
+    try:
+        installed = list_models(provider, base_url, api_key, timeout=timeout)
+    except ProviderError:
+        # провайдер недоступен — пусть обычная обработка ошибок покажет это
+        return model
+    except Exception:  # noqa: BLE001 — мок-объекты в тестах могут не иметь .get
+        return model
+    resolved = _pick_installed(installed, model)
+    _model_fallback_cache[key] = (now, resolved)
+    if resolved != model:
+        logger.warning(
+            "Модель '%s' не установлена на этой машине — используется '%s' "
+            "(настройка не менялась, подмена только на текущей машине)",
+            model,
+            resolved,
+        )
+    return resolved
+
+
+def clear_model_fallback_cache() -> None:
+    _model_fallback_cache.clear()
 
 
 class ProviderError(Exception):
@@ -109,7 +186,9 @@ def test_connection(
         models = list_models(provider, base_url, api_key)
     except ProviderError as exc:
         return ProviderTestOut(reachable=False, model_available=False, models=[], error=exc.detail)
-    model_available = bool(model) and model in models
+    # Модель может быть подменена авто-подбором на этой машине — тогда считаем,
+    # что модель доступна (см. resolve_local_model / _pick_installed).
+    model_available = bool(model) and (model in models or _pick_installed(models, model) in models)
     if model and not models:
         model_available = True
     return ProviderTestOut(
@@ -125,6 +204,11 @@ def chat(
 ) -> str:
     provider = settings.provider if settings.provider in config.PROVIDERS else "ollama"
     url = normalize_base_url(provider, settings.base_url)
+    # Локальные провайдеры: подбираем реально установленную модель (см. выше),
+    # чтобы настройки, общие для нескольких машин, не ломали генерацию.
+    model = resolve_local_model(
+        provider, settings.base_url, settings.api_key, settings.model
+    )
     use_json = settings.json_mode if json_mode is None else json_mode
     messages = [
         {"role": "system", "content": system_prompt},
@@ -172,7 +256,7 @@ def chat(
                 return ""
         if provider == "ollama":
             payload: dict[str, Any] = {
-                "model": settings.model,
+                "model": model,
                 "messages": messages,
                 "stream": False,
                 # Reasoning-модели (deepseek-r1, qwen3 и т.п.) по умолчанию
@@ -214,7 +298,7 @@ def chat(
             return (data.get("message") or {}).get("content", "") or ""
 
         payload = {
-            "model": settings.model,
+            "model": model,
             "messages": messages,
             "temperature": settings.temperature,
             "top_p": settings.top_p,

@@ -6,6 +6,13 @@ from app.schemas import SettingsOut
 from app.services import llm_provider
 
 
+@pytest.fixture(autouse=True)
+def _clear_fallback_cache():
+    llm_provider.clear_model_fallback_cache()
+    yield
+    llm_provider.clear_model_fallback_cache()
+
+
 def test_normalize_ollama_default():
     assert llm_provider.normalize_base_url("ollama", "") == "http://localhost:11434"
     assert llm_provider.normalize_base_url("ollama", "http://localhost:11434/") == "http://localhost:11434"
@@ -107,3 +114,96 @@ def test_chat_positive_timeout_passed_through(monkeypatch):
     )
     assert llm_provider.chat("system", "user", settings) == "ok"
     assert seen["timeout"] == 300
+
+
+# ---------------------------------------------------------------- fallback
+def test_resolve_returns_exact_when_installed(monkeypatch):
+    monkeypatch.setattr(llm_provider, "list_models", lambda *a, **kw: ["gemma4:e4b"])
+    assert llm_provider.resolve_local_model("ollama", "http://x", "", "gemma4:e4b") == "gemma4:e4b"
+
+
+def test_resolve_picks_same_family(monkeypatch):
+    monkeypatch.setattr(
+        llm_provider, "list_models",
+        lambda *a, **kw: ["gemma4:12b", "bge-m3:latest"],
+    )
+    assert llm_provider.resolve_local_model("ollama", "http://x", "", "gemma4:e4b") == "gemma4:12b"
+
+
+def test_resolve_picks_any_non_embedding(monkeypatch):
+    monkeypatch.setattr(
+        llm_provider, "list_models",
+        lambda *a, **kw: ["bge-m3:latest", "mimo-v2.6:latest"],
+    )
+    assert llm_provider.resolve_local_model("ollama", "http://x", "", "llama3:8b") == "mimo-v2.6:latest"
+
+
+def test_resolve_returns_original_when_nothing_installed(monkeypatch):
+    monkeypatch.setattr(llm_provider, "list_models", lambda *a, **kw: [])
+    assert llm_provider.resolve_local_model("ollama", "http://x", "", "llama3:8b") == "llama3:8b"
+
+
+def test_resolve_never_raises_when_unreachable(monkeypatch):
+    def boom(*a, **kw):
+        raise llm_provider.ProviderError("Provider unreachable", "no connect")
+
+    monkeypatch.setattr(llm_provider, "list_models", boom)
+    assert llm_provider.resolve_local_model("ollama", "http://x", "", "llama3:8b") == "llama3:8b"
+
+
+def test_resolve_skips_cloud_providers(monkeypatch):
+    def boom(*a, **kw):
+        raise AssertionError("list_models must not be called for cloud providers")
+
+    monkeypatch.setattr(llm_provider, "list_models", boom)
+    assert llm_provider.resolve_local_model("anthropic", "http://x", "key", "claude-x") == "claude-x"
+
+
+def test_resolve_uses_cache_within_ttl(monkeypatch):
+    calls = []
+
+    def fake_list(*a, **kw):
+        calls.append(1)
+        return ["m:12b"]
+
+    monkeypatch.setattr(llm_provider, "list_models", fake_list)
+    first = llm_provider.resolve_local_model("ollama", "http://x", "", "m:8b")
+    second = llm_provider.resolve_local_model("ollama", "http://x", "", "m:8b")
+    assert first == second == "m:12b"
+    assert len(calls) == 1
+
+
+def test_chat_uses_resolved_model(monkeypatch):
+    seen: dict = {}
+
+    class FakeResp:
+        status_code = 200
+        text = "{}"
+
+        def json(self):
+            return {"message": {"content": "ok"}}
+
+    class FakeClient:
+        def __init__(self, timeout=None, headers=None):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def post(self, url, json=None):
+            seen["payload"] = json
+            return FakeResp()
+
+    monkeypatch.setattr(llm_provider.httpx, "Client", FakeClient)
+    monkeypatch.setattr(llm_provider, "list_models", lambda *a, **kw: ["gemma4:12b"])
+    settings = SettingsOut(
+        provider="ollama",
+        base_url="http://localhost:11434",
+        model="gemma4:e4b",
+        timeout_seconds=5,
+    )
+    assert llm_provider.chat("system", "user", settings) == "ok"
+    assert seen["payload"]["model"] == "gemma4:12b"
