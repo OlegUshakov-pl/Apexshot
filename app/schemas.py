@@ -17,7 +17,7 @@ class SettingsOut(BaseModel):
     top_p: float = 0.9
     seed: int = 42
     max_tokens: int = 2000
-    timeout_seconds: int = 300
+    timeout_seconds: int = 0
     json_mode: bool = True
     max_input_chars: int = 12000
     max_chunk_chars: int = 6000
@@ -35,7 +35,7 @@ class SettingsUpdate(BaseModel):
     top_p: float = 0.9
     seed: int = 42
     max_tokens: int = 2000
-    timeout_seconds: int = 300
+    timeout_seconds: int = 0
     json_mode: bool = True
     max_input_chars: int = 12000
     max_chunk_chars: int = 6000

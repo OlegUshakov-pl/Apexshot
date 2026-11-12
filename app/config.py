@@ -124,7 +124,8 @@ DEFAULTS = {
     "top_p": 0.9,
     "seed": 42,
     "max_tokens": 2000,
-    "timeout_seconds": 300,
+    # 0 = неограниченный таймаут ожидания ответа модели
+    "timeout_seconds": 0,
     "json_mode": 1,
     "max_input_chars": 12000,
     "max_chunk_chars": 6000,

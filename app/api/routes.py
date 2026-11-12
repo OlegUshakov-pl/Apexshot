@@ -96,6 +96,8 @@ def put_settings(payload: SettingsUpdate) -> SettingsOut:
         raise _error(400, "Invalid language", i18n.t("Язык должен быть одним из: en, pl, ru"))
     if payload.temperature < 0 or payload.temperature > 2:
         raise _error(400, "Invalid temperature", i18n.t("temperature должен быть в диапазоне 0.0–2.0"))
+    if payload.timeout_seconds < 0:
+        raise _error(400, "Invalid timeout", i18n.t("timeout_seconds должен быть 0 (бесконечно) или положительным числом"))
     if payload.max_input_chars < 500:
         raise _error(400, "Invalid max_input_chars", i18n.t("max_input_chars должен быть не меньше 500"))
     if payload.max_chunk_chars < 200:

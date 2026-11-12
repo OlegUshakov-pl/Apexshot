@@ -168,6 +168,11 @@ The root data directory is moved with the `SHOT_DATA_DIR` environment variable.
 Before the first run, open **Settings**: select a provider, specify the model (or API key
 for cloud providers), and test the connection with “Test”.
 
+Generation has no hard time limit by default: `timeout_seconds = 0` means “wait for the
+model as long as it takes” (set any positive number of seconds to cap it). Local models
+missing on the current machine are resolved automatically at request time (same model
+family first), so shared settings work across computers with different local models.
+
 In the **“Interface language”** block you can switch the UI language: `English` / `Polski` / `Русский`
 (English by default, the value is stored in the `settings` table).
 
