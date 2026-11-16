@@ -35,5 +35,14 @@
   "Готово": "Gotowe",
   "Укажите директорию": "Podaj katalog",
   "Ошибка создания": "Błąd tworzenia",
-  "Ошибка запроса:": "Błąd żądania:"
+  "Ошибка запроса:": "Błąd żądania:",
+  "Из директории": "Z katalogu",
+  "Со страницы (URL)": "Ze strony (URL)",
+  "URL страницы": "URL strony",
+  "Страница будет скачана, а source_url подставится автоматически": "Strona zostanie pobrana, a source_url uzupełni się automatycznie",
+  "Подставится из URL страницы": "Uzupełnione z URL strony",
+  "Ссылка на сайт/репозиторий. Обязательное поле, попадёт в слепок.": "Link do strony/repozytorium. Pole wymagane — trafi do zrzutu.",
+  "Локальный адрес — отправка такого слепка на сервер будет запрещена.": "Adres lokalny — wysyłanie takiego zrzutu na serwer jest zablokowane.",
+  "Укажите source_url — корректную http(s)-ссылку на сайт": "Podaj source_url — poprawny link http(s) do strony",
+  "Укажите корректную http(s)-ссылку на страницу": "Podaj poprawny link http(s) do strony"
 }

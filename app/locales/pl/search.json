@@ -19,5 +19,10 @@
   "Ничего не найдено.": "Nic nie znaleziono.",
   "Попробуйте изменить запрос или фильтры.": "Spróbuj zmienić zapytanie lub filtry.",
   "Поиск…": "Szukanie…",
-  "Страница {page} из {pages} · всего {total}": "Strona {page} z {pages} · razem {total}"
+  "Страница {page} из {pages} · всего {total}": "Strona {page} z {pages} · razem {total}",
+  "Гибридный поиск: векторный (ChromaDB) + полнотекстовый (BM25), слияние RRF. Пустой запрос — обычный список с фильтрами.": "Wyszukiwanie hybrydowe: wektorowe (ChromaDB) + pełnotekstowe (BM25), scalanie RRF. Puste zapytanie — klasyczna lista z filtrami.",
+  "Локальный source_url — отправка запрещена": "Lokalny source_url — wysyłanie jest zablokowane",
+  "Послать": "Wyślij",
+  "Отправлено": "Wysłano",
+  "Ошибка отправки": "Błąd wysyłania"
 }

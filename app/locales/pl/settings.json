@@ -30,5 +30,10 @@
   "unreachable": "nieosiągalny",
   "model available": "model dostępny",
   "model missing": "brak modelu",
-  "Нажмите «Список», чтобы загрузить модели": "Kliknij „Lista”, aby wczytać modele"
+  "Нажмите «Список», чтобы загрузить модели": "Kliknij „Lista”, aby wczytać modele",
+  "0 = ждать бесконечно": "0 = czekaj bez ograniczenia",
+  "Отправка на сервер": "Wysyłanie na serwer",
+  "Кнопка «Послать» на странице поиска отправляет JSON слепка POST-запросом на этот адрес.": "Przycisk „Wyślij” na stronie wyszukiwania wysyła JSON zrzutu żądaniem POST na ten adres.",
+  "Сервер доступен": "Serwer dostępny",
+  "Сервер недоступен": "Serwer niedostępny"
 }

@@ -18,5 +18,11 @@
   "Ничего не найдено.": "Nothing found.",
   "Попробуйте изменить запрос или фильтры.": "Try changing your query or filters.",
   "Поиск…": "Searching…",
-  "Страница {page} из {pages} · всего {total}": "Page {page} of {pages} · total {total}"
+  "Страница {page} из {pages} · всего {total}": "Page {page} of {pages} · total {total}",
+  "all": "all",
+  "Гибридный поиск: векторный (ChromaDB) + полнотекстовый (BM25), слияние RRF. Пустой запрос — обычный список с фильтрами.": "Hybrid search: vector (ChromaDB) + full-text (BM25), merged by RRF. Empty query — the classic filtered list.",
+  "Локальный source_url — отправка запрещена": "Local source_url — sending is forbidden",
+  "Послать": "Send",
+  "Отправлено": "Sent",
+  "Ошибка отправки": "Send error"
 }

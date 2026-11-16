@@ -26,5 +26,14 @@
   "Настройки сохранены": "Settings saved",
   "Ошибка сохранения": "Save error",
   "Ошибка запроса": "Request error",
-  "Нажмите «Список», чтобы загрузить модели": "Click \"List\" to load models"
+  "Нажмите «Список», чтобы загрузить модели": "Click \"List\" to load models",
+  "0 = ждать бесконечно": "0 = wait indefinitely",
+  "Отправка на сервер": "Server upload",
+  "Кнопка «Послать» на странице поиска отправляет JSON слепка POST-запросом на этот адрес.": "The \"Send\" button on the search page POSTs the snapshot JSON to this address.",
+  "Сервер доступен": "Server reachable",
+  "Сервер недоступен": "Server unreachable",
+  "reachable": "reachable",
+  "unreachable": "unreachable",
+  "model available": "model available",
+  "model missing": "model missing"
 }

@@ -35,5 +35,14 @@
   "Готово": "Done",
   "Укажите директорию": "Specify a directory",
   "Ошибка создания": "Creation error",
-  "Ошибка запроса:": "Request error:"
+  "Ошибка запроса:": "Request error:",
+  "Из директории": "From directory",
+  "Со страницы (URL)": "From page (URL)",
+  "URL страницы": "Page URL",
+  "Страница будет скачана, а source_url подставится автоматически": "The page will be downloaded and source_url will be filled in automatically",
+  "Подставится из URL страницы": "Filled in from the page URL",
+  "Ссылка на сайт/репозиторий. Обязательное поле, попадёт в слепок.": "Link to the website/repository. Required — it will be stored in the snapshot.",
+  "Локальный адрес — отправка такого слепка на сервер будет запрещена.": "Local address — sending this snapshot to the server is forbidden.",
+  "Укажите source_url — корректную http(s)-ссылку на сайт": "Provide source_url — a valid http(s) link to the website",
+  "Укажите корректную http(s)-ссылку на страницу": "Provide a valid http(s) link to the page"
 }
