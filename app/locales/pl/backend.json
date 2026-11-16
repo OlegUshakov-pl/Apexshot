@@ -47,6 +47,7 @@
   "Не удалось подключиться к {url}: {error}": "Nie udało się połączyć z {url}: {error}",
   "Провайдер вернул некорректный ответ: {error}": "Dostawca zwrócił nieprawidłową odpowiedź: {error}",
   "Ошибка Ollama ({status}): {body}": "Błąd Ollama ({status}): {body}",
+  "Ошибка {provider} ({status}): {body}": "Błąd {provider} ({status}): {body}",
   "Ошибка LM Studio ({status}): {body}": "Błąd LM Studio ({status}): {body}",
   "Превышено время ожидания ответа от {url} ({timeout} c)": "Przekroczono czas oczekiwania na odpowiedź z {url} ({timeout} s)",
   "Не удалось подключиться к {provider} на {url}: {error}": "Nie udało się połączyć z {provider} pod adresem {url}: {error}",

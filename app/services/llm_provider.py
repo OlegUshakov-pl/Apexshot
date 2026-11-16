@@ -285,6 +285,12 @@ def chat(
                     # повторяем без него, парсер вытащит JSON из текста.
                     payload.pop("format", None)
                     resp = client.post(f"{url}/api/chat", json=payload)
+                if resp.status_code >= 400 and "think" in resp.text.lower():
+                    # Модель/версия Ollama не умеет отключать thinking —
+                    # повторяем без параметра (reasoning попадёт в ответ,
+                    # парсер отделяет финальный JSON).
+                    payload.pop("think", None)
+                    resp = client.post(f"{url}/api/chat", json=payload)
             if resp.status_code >= 400:
                 raise ProviderError(
                     "Provider error",
@@ -305,8 +311,8 @@ def chat(
             "seed": settings.seed,
             "max_tokens": settings.max_tokens,
             "stream": False,
-            # Отключаем thinking/reasoning для LM Studio
-            # (OpenAI-совместимый /v1/chat/completions):
+            # Отключаем thinking/reasoning для OpenAI-совместимых провайдеров
+            # (LM Studio, OpenRouter, DeepSeek, Groq и т.п.):
             # reasoning_effort=none — документированный способ,
             # остальное — для qwen/прочих шаблонов, игнорируется если не поддержано.
             "reasoning_effort": "none",
@@ -317,14 +323,24 @@ def chat(
             payload["response_format"] = {"type": "json_object"}
         with httpx.Client(timeout=timeout, headers=headers) as client:
             resp = client.post(f"{url}/chat/completions", json=payload)
+            # Часть reasoning-моделей не позволяет отключить thinking
+            # ("Reasoning is mandatory for this endpoint..." — LM Studio,
+            # OpenRouter) — повторяем без параметров отключения reasoning.
+            if resp.status_code >= 400 and "reasoning" in resp.text.lower():
+                for key in ("reasoning_effort", "enable_thinking", "chat_template_kwargs"):
+                    payload.pop(key, None)
+                resp = client.post(f"{url}/chat/completions", json=payload)
             if resp.status_code >= 400 and use_json and "response_format" in resp.text:
+                # Старые/мелкие модели не поддерживают response_format —
+                # повторяем без него, парсер вытащит JSON из текста.
                 payload.pop("response_format", None)
                 resp = client.post(f"{url}/chat/completions", json=payload)
         if resp.status_code >= 400:
             raise ProviderError(
                 "Provider error",
                 i18n.t(
-                    "Ошибка LM Studio ({status}): {body}",
+                    "Ошибка {provider} ({status}): {body}",
+                    provider=config.PROVIDER_NAMES.get(provider, provider),
                     status=resp.status_code,
                     body=resp.text[:300],
                 ),

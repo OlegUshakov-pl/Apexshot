@@ -207,3 +207,81 @@ def test_chat_uses_resolved_model(monkeypatch):
     )
     assert llm_provider.chat("system", "user", settings) == "ok"
     assert seen["payload"]["model"] == "gemma4:12b"
+
+
+def _retry_client(posts: list[dict], responses: list[tuple[int, str, dict]]):
+    class FakeResp:
+        def __init__(self, item):
+            self._item = item
+            self.status_code = item[0]
+            self.text = item[1]
+
+        def json(self):
+            return self._item[2]
+
+    class FakeClient:
+        def __init__(self, timeout=None, headers=None):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def post(self, url, json=None):
+            posts.append(dict(json))
+            return FakeResp(responses[len(posts) - 1])
+
+    return FakeClient
+
+
+def test_chat_lmstudio_strips_reasoning_params_on_400(monkeypatch):
+    posts: list[dict] = []
+    responses = [
+        (400, '{"error":{"message":"Reasoning is mandatory for this endpoint and cannot be disabled."}}', {}),
+        (200, "{}", {"choices": [{"message": {"content": "ok"}}]}),
+    ]
+    monkeypatch.setattr(
+        llm_provider.httpx, "Client", _retry_client(posts, responses)
+    )
+    monkeypatch.setattr(llm_provider, "list_models", lambda *a, **kw: ["m"])
+    settings = SettingsOut(
+        provider="lmstudio",
+        base_url="http://localhost:1234",
+        model="m",
+        timeout_seconds=5,
+        json_mode=True,
+    )
+    assert llm_provider.chat("system", "user", settings) == "ok"
+    assert len(posts) == 2
+    first, second = posts
+    assert first.get("reasoning_effort") == "none"
+    assert "enable_thinking" in first
+    assert "reasoning_effort" not in second
+    assert "enable_thinking" not in second
+    assert "chat_template_kwargs" not in second
+
+
+def test_chat_ollama_strips_think_on_400(monkeypatch):
+    posts: list[dict] = []
+    responses = [
+        (400, '{"error":"model does not support thinking"}', {}),
+        (200, "{}", {"message": {"content": "ok"}}),
+    ]
+    monkeypatch.setattr(
+        llm_provider.httpx, "Client", _retry_client(posts, responses)
+    )
+    monkeypatch.setattr(llm_provider, "list_models", lambda *a, **kw: ["m"])
+    settings = SettingsOut(
+        provider="ollama",
+        base_url="http://localhost:11434",
+        model="m",
+        timeout_seconds=5,
+        json_mode=True,
+    )
+    assert llm_provider.chat("system", "user", settings) == "ok"
+    assert len(posts) == 2
+    first, second = posts
+    assert first.get("think") is False
+    assert "think" not in second
