@@ -1,4 +1,4 @@
-# Projekt: ApexSnap (AI Snapshot Search)
+# Projekt: ApexShot (AI Snapshot Search)
 
 ## 1. Opis problemu
 Współczesne wyszukiwanie (w internecie i w korporacyjnych bazach danych) cierpi na **szum** i **fragmentację**.
