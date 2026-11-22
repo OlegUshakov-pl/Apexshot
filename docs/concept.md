@@ -35,7 +35,7 @@ The system works on the model **"Text Upload → AI Analysis → JSON Storage �
 2.  **Storage (Server-Side):**
     *   The valid JSON file is saved on the server's disk (or in object storage).
     *   The server extracts the metadata (`title`, `url`, `entities`, `summary`) and stores it in a relational DB (PostgreSQL/SQLite) for fast access.
-    *   *Note:* In the current MVP version, search is performed by direct matching on metadata fields and the `facts` text. Vector search (embeddings) will be added in future versions.
+    *   *Note:* In the current MVP version, search is performed by direct matching on metadata fields and the `facts` text. 
 
 3.  **Search:**
     *   The user enters a query in the web interface or via the API.

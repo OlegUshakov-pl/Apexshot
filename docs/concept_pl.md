@@ -7,7 +7,7 @@ Współczesne wyszukiwanie (w internecie i w korporacyjnych bazach danych) cierp
 *   **Główny punkt bólu:** Informacje są rozproszone. Aby uzyskać odpowiedź, osoba jest zmuszona ręcznie „grzebać".
 
 ## 2. Proponowane rozwiązanie
-**ApexSnap** to scentralizowany system wyszukiwania semantycznego oparty na **kopiach AI** (JSON Snapshots).
+**ApexShot** to scentralizowany system wyszukiwania semantycznego oparty na **kopiach AI** (JSON Snapshots).
 
 System transformuje dowolną treść wejściową (tekst, dokument, kod) w **kompaktowy, ustrukturyzowany plik JSON snapshot** (wielkość 1–20 KB).
 
@@ -35,7 +35,7 @@ System działa według modelu **„Wgrywanie tekstu → Analiza AI → Przechowy
 2.  **Przechowywanie (strona serwera):**
     *   Poprawny plik JSON jest zapisywany na dysku serwera (lub w przechowywaniu obiektowym).
     *   Serwer wyciąga metadane (`title`, `url`, `entities`, `summary`) i przechowuje je w relacyjnej bazie danych (PostgreSQL/SQLite) dla szybkiego dostępu.
-    *   *Uwaga:* W bieżącej wersji MVP wyszukiwanie odbywa się przez bezpośrednie dopasowanie pól metadanych i tekstu `facts`. Wyszukiwanie wektorowe (embeddings) zostanie dodane w przyszłych wersjach.
+    *   *Uwaga:* W bieżącej wersji MVP wyszukiwanie odbywa się przez bezpośrednie dopasowanie pól metadanych i tekstu `facts`. 
 
 3.  **Wyszukiwanie:**
     *   Użytkownik wprowadza zapytanie w interfejsie webowym lub przez API.
