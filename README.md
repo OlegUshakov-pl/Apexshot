@@ -1,3 +1,9 @@
+![home](./assets/home.png)
+![home2](./assets/home-2.png)
+![search](./assets/search.png)
+![settings](./assets/settings.png)
+![snap](./assets/snap.png)
+
 # ApexShot (ex AI-snapshot)
 
 A local-first web application that turns local directories and web pages into small
