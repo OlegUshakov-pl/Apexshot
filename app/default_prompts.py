@@ -1,61 +1,65 @@
 from __future__ import annotations
 
-BASE_SYSTEM_PROMPT = """Ты создаешь AI-слепок — маленький машиночитаемый JSON-файл.
+BASE_SYSTEM_PROMPT = """You create an AI snapshot — a small machine-readable JSON file.
 
-Верни только один валидный JSON-объект.
-Не возвращай markdown, пояснения, комментарии или текст вне JSON.
+Return a single valid JSON object only.
+Do not return markdown, explanations, comments, or any text outside the JSON.
 
-Правила:
-1. Используй только предоставленный текст.
-2. Не добавляй знания извне.
-3. Не выдумывай факты.
-4. Каждое fact должно содержать поле quote — точную цитату из исходного текста.
-5. Если информации нет, используй пустые списки или null.
-6. summary должен быть кратким и нейтральным.
-7. confidence — от 0.0 до 1.0.
-8. Если текст рекламный, неполный или шумный, снижай confidence.
-9. search_text — строка для поиска, состоящая из title, summary, tags, topics, technologies и ключевых claims.
-10. Ответ должен помещаться в лимит токенов. Соблюдай ограничения объёма:
-    не больше 8 facts, 4 sections, 6 highlights, 10 tags, 8 questions;
-    claim — до 150 символов, quote — до 300 символов, summary — до 600 символов,
-    текст секции — до 400 символов. Не пиши ничего лишнего."""
+Rules:
+1. Use only the provided text.
+2. Do not add outside knowledge.
+3. Do not invent facts.
+4. Every fact must contain a quote field — an exact quote from the source text.
+5. If information is missing, use empty lists or null.
+6. summary must be short and neutral.
+7. confidence — from 0.0 to 1.0.
+8. If the text is promotional, incomplete, or noisy, lower confidence.
+9. search_text — a search string built from title, summary, tags, topics, technologies, and key claims.
+10. The response must fit within the token limit. Keep within the volume limits:
+    no more than 8 facts, 4 sections, 6 highlights, 10 tags, 8 questions;
+    claim — up to 150 characters, quote — up to 300 characters, summary — up to 600 characters,
+    section text — up to 400 characters. Write nothing extra.
+11. Always write every field of the snapshot (title, summary, sections, claims, questions,
+    tags, entities, search_text, reasons) in English, no matter what language the source
+    text is in. The only exception: quote fields must stay verbatim in the source language,
+    because they are verified against the original text."""
 
-DEFAULT_USER_PROMPT = """Сформируй AI-слепок.
+DEFAULT_USER_PROMPT = """Create an AI snapshot.
 
-Тип: {type}
-Директория: {directory}
-Файлы: {files}
+Type: {type}
+Directory: {directory}
+Files: {files}
 
-Исходный текст:
+Source text:
 {text}
 
-Верни строго JSON по схеме:
+Return strict JSON matching the schema:
 {schema}"""
 
-DEFAULT_CHUNK_PROMPT = """Суммаризируй только этот фрагмент текста.
+DEFAULT_CHUNK_PROMPT = """Summarize only this text fragment.
 
-Тип: {type}
-Директория: {directory}
-Фрагмент {chunk_index} из {chunk_count}
+Type: {type}
+Directory: {directory}
+Fragment {chunk_index} of {chunk_count}
 
-Текст:
+Text:
 {text}
 
-Верни JSON:
+Return JSON:
 {schema}"""
 
-DEFAULT_MERGE_PROMPT = """Даны частичные слепки:
+DEFAULT_MERGE_PROMPT = """Partial snapshots are given:
 
 {partials}
 
-Объедини их в один финальный AI-слепок.
+Merge them into one final AI snapshot.
 
-Правила:
-1. Используй только предоставленные частичные данные.
-2. Удали дублирующиеся факты.
-3. Сохрани только важные и проверяемые факты.
-4. Каждая цитата должна существовать в исходном тексте.
-5. Верни финальный JSON по схеме:
+Rules:
+1. Use only the provided partial data.
+2. Remove duplicate facts.
+3. Keep only important and verifiable facts.
+4. Every quote must exist in the source text.
+5. Return the final JSON matching the schema:
 {schema}"""
 
 SNAPSHOT_SCHEMA = {
@@ -141,89 +145,89 @@ SNAPSHOT_SCHEMA = {
 }
 
 TEMPLATE_DESCRIPTIONS = {
-    "article": "Шаблон для статей и лонгридов",
-    "documentation": "Шаблон для технической документации",
-    "news": "Шаблон для новостных материалов",
-    "forum": "Шаблон для обсуждений и форумных веток",
-    "notes": "Шаблон для личных заметок",
-    "general": "Универсальный шаблон для любых директорий",
-    "software": "Шаблон для проектов приложений: README, стек, запуск, фичи, скриншоты",
-    "site": "Шаблон для сайтов: страницы, навигация, дизайн, стек, скриншоты",
-    "webpage": "Шаблон для слепка веб-страницы по URL: контент, структура, ссылки",
+    "article": "Template for articles and long-form posts",
+    "documentation": "Template for technical documentation",
+    "news": "Template for news articles",
+    "forum": "Template for discussions and forum threads",
+    "notes": "Template for personal notes",
+    "general": "Universal template for any directory",
+    "software": "Template for application projects: README, stack, run instructions, features, screenshots",
+    "site": "Template for websites: pages, navigation, design, stack, screenshots",
+    "webpage": "Template for a snapshot of a web page by URL: content, structure, links",
 }
 
 SOFTWARE_SYSTEM_PROMPT = BASE_SYSTEM_PROMPT + """
 
-Дополнительно для Software Snapshot:
-1. Приоритет — README.md / README.rst / docs: назначение, фичи, установка, запуск, конфиги.
-2. Определи стек: язык(и), фреймворк (Django, FastAPI, Flask, Streamlit, NiceGUI, Next.js, React, Vue и т.п.), БД, очереди, Docker. Пиши только то, что явно видно в тексте (requirements.txt, pyproject.toml, package.json, Dockerfile, импорты). Не угадывай.
-3. technologies: языки, фреймворки, библиотеки, БД, инструменты сборки/деплоя.
-4. В sections сделай до 4 из: Обзор / Стек / Установка и запуск / Структура и конфиги / Скриншоты и медиа.
-5. Список images/медиафайлов дан отдельно — опиши их по именам (что за скриншот, к какому разделу относится), не выдумывай содержимое.
-6. facts: требования, команды запуска, переменные окружения, версии — каждый с точной quote."""
+Additional rules for a Software Snapshot:
+1. Priority — README.md / README.rst / docs: purpose, features, installation, running, configs.
+2. Detect the stack: language(s), framework (Django, FastAPI, Flask, Streamlit, NiceGUI, Next.js, React, Vue, etc.), database, queues, Docker. Only write what is explicitly visible in the text (requirements.txt, pyproject.toml, package.json, Dockerfile, imports). Do not guess.
+3. technologies: languages, frameworks, libraries, databases, build/deploy tools.
+4. In sections, include up to 4 of: Overview / Stack / Installation and running / Structure and configs / Screenshots and media.
+5. The list of images/media files is provided separately — describe them by name (which screenshot it is, which section it belongs to); do not invent their content.
+6. facts: requirements, run commands, environment variables, versions — each with an exact quote."""
 
 SITE_SYSTEM_PROMPT = BASE_SYSTEM_PROMPT + """
 
-Дополнительно для Site Snapshot:
-1. Приоритет — README.md, index.html, тексты страниц, навигация, мета-теги.
-2. Определи стек сайта: генератор/CMS (Next.js, React, Vue, Nuxt, Hugo, Jekyll, WordPress и т.п.), CSS (Tailwind, Bootstrap), хостинг/деплой — только по явным признакам в тексте. Не угадывай.
-3. technologies: фреймворки, CMS, CSS, JS-библиотеки, хостинг.
-4. В sections сделай до 4 из: Обзор / Страницы и навигация / Дизайн и контент / Стек / Скриншоты и медиа.
-5. Список images/медиафайлов дан отдельно — сопоставь с разделами сайта по именам/путям (hero, landing, screenshots), не выдумывай содержимое картинок.
-6. facts: страницы, роуты, контакты, ссылки, инструкции деплоя — каждый с точной quote."""
+Additional rules for a Site Snapshot:
+1. Priority — README.md, index.html, page texts, navigation, meta tags.
+2. Detect the site stack: generator/CMS (Next.js, React, Vue, Nuxt, Hugo, Jekyll, WordPress, etc.), CSS (Tailwind, Bootstrap), hosting/deploy — only from explicit signs in the text. Do not guess.
+3. technologies: frameworks, CMS, CSS, JS libraries, hosting.
+4. In sections, include up to 4 of: Overview / Pages and navigation / Design and content / Stack / Screenshots and media.
+5. The list of images/media files is provided separately — match them to site sections by name/path (hero, landing, screenshots); do not invent image content.
+6. facts: pages, routes, contacts, links, deploy instructions — each with an exact quote."""
 
-SOFTWARE_USER_PROMPT = """Сформируй Software Snapshot проекта.
+SOFTWARE_USER_PROMPT = """Create a Software Snapshot of the project.
 
-Тип: {type}
-Директория: {directory}
-Файлы: {files}
-Медиафайлы (images, опиши по именам, содержимое не выдумывай): {media_files}
+Type: {type}
+Directory: {directory}
+Files: {files}
+Media files (images, describe them by name, do not invent content): {media_files}
 
-Особое внимание: README.md (назначение, фичи, установка/запуск), манифесты зависимостей
+Pay special attention to: README.md (purpose, features, installation/running), dependency manifests
 (requirements.txt, pyproject.toml, package.json, go.mod, Dockerfile, docker-compose.yml),
-исходники (импорты Django / FastAPI / Flask / Streamlit / NiceGUI / Next.js и т.п.).
+source code (imports of Django / FastAPI / Flask / Streamlit / NiceGUI / Next.js, etc.).
 
-Исходный текст:
+Source text:
 {text}
 
-Верни строго JSON по схеме:
+Return strict JSON matching the schema:
 {schema}"""
 
-SITE_USER_PROMPT = """Сформируй Site Snapshot сайта.
+SITE_USER_PROMPT = """Create a Site Snapshot of the website.
 
-Тип: {type}
-Директория: {directory}
-Файлы: {files}
-Медиафайлы (images, сопоставь со страницами по именам, содержимое не выдумывай): {media_files}
+Type: {type}
+Directory: {directory}
+Files: {files}
+Media files (images, match them to pages by name, do not invent content): {media_files}
 
-Особое внимание: README.md, HTML (title, meta, h1, nav, footer, ссылки), тексты страниц,
-конфиги фреймворков (package.json, next.config.*, astro.config.*, _config.yml), признаки
-стека (Next.js, React, Vue, Nuxt, Hugo, Jekyll, WordPress, Tailwind, Bootstrap и т.п.).
+Pay special attention to: README.md, HTML (title, meta, h1, nav, footer, links), page texts,
+framework configs (package.json, next.config.*, astro.config.*, _config.yml), stack signs
+(Next.js, React, Vue, Nuxt, Hugo, Jekyll, WordPress, Tailwind, Bootstrap, etc.).
 
-Исходный текст:
+Source text:
 {text}
 
-Верни строго JSON по схеме:
+Return strict JSON matching the schema:
 {schema}"""
 
 WEBPAGE_SYSTEM_PROMPT = BASE_SYSTEM_PROMPT + """
 
-Дополнительно для Webpage Snapshot:
-1. Источник — одна веб-страница: опиши её содержание, структуру и назначение.
-2. technologies: только то, что явно видно в тексте (фреймворки, CMS, аналитика).
-3. В sections сделай до 4 из: Обзор / Содержание / Структура и навигация / Ссылки и контакты.
-4. facts: заголовки, ключевые утверждения, ссылки, контакты — каждый с точной quote."""
+Additional rules for a Webpage Snapshot:
+1. The source is a single web page: describe its content, structure, and purpose.
+2. technologies: only what is explicitly visible in the text (frameworks, CMS, analytics).
+3. In sections, include up to 4 of: Overview / Content / Structure and navigation / Links and contacts.
+4. facts: headings, key claims, links, contacts — each with an exact quote."""
 
-WEBPAGE_USER_PROMPT = """Сформируй Webpage Snapshot страницы.
+WEBPAGE_USER_PROMPT = """Create a Webpage Snapshot of the page.
 
-Тип: {type}
-URL страницы: {directory}
-Файлы: {files}
+Type: {type}
+Page URL: {directory}
+Files: {files}
 
-Исходный текст страницы:
+Page source text:
 {text}
 
-Верни строго JSON по схеме:
+Return strict JSON matching the schema:
 {schema}"""
 
 _TYPE_PROMPTS = {

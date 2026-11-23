@@ -185,7 +185,7 @@ def test_template(template_id: int, payload: TemplateTestIn) -> TemplateTestOut:
     if not template:
         raise _error(404, "Template not found", i18n.t("Шаблон {id} не найден", id=template_id))
     settings = settings_service.get_settings()
-    sample = payload.sample_text.strip() or "Ollama позволяет запускать локальные LLM локально."
+    sample = payload.sample_text.strip() or "Ollama lets you run local LLMs right on your computer."
     schema_pretty = template.template_schema or "{}"
     mapping = {
         "type": payload.type or template.snapshot_type,

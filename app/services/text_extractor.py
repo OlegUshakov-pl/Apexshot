@@ -184,10 +184,10 @@ def build_corpus(docs: list[Document], media_files: list[str] | None = None) -> 
         return (2, d.file)
 
     for doc in sorted(docs, key=_priority):
-        parts.append(f"### Файл: {doc.file}\nЗаголовок: {doc.title}\n\n{doc.text}")
+        parts.append(f"### File: {doc.file}\nTitle: {doc.title}\n\n{doc.text}")
     if media_files:
         parts.append(
-            "### Медиафайлы (images, содержимое неизвестно — суди только по именам/путям):\n"
+            "### Media files (images, content unknown — judge only by names/paths):\n"
             + "\n".join(f"- {m}" for m in media_files[:100])
         )
     return "\n\n".join(parts)

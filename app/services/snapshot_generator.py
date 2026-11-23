@@ -26,9 +26,9 @@ class GenerationError(Exception):
 
 MAX_ATTEMPTS = 3
 STRICT_JSON_PREFIX = (
-    "Верни только JSON. Не добавляй markdown. Не добавляй пояснения.\n"
-    "Если прошлый ответ был длинным и оборван — сократи его: максимум 8 фактов, "
-    "4 секции, 6 цитат, 10 тегов, 8 вопросов, короткие формулировки.\n\n"
+    "Return JSON only. No markdown. No explanations.\n"
+    "If the previous answer was long and truncated — shorten it: at most 8 facts, "
+    "4 sections, 6 highlights, 10 tags, 8 questions, concise wording.\n\n"
 )
 _PLACEHOLDER = re.compile(r"\{([a-zA-Z_]+)\}")
 
@@ -489,7 +489,7 @@ def _run_pipeline(
             )
         docs = [text_extractor.Document(file=final_url, title=page_title, text=page_text)]
         media_list: list[str] = []
-        corpus = f"### Страница: {final_url}\nЗаголовок: {page_title}\n\n{page_text}"
+        corpus = f"### Page: {final_url}\nTitle: {page_title}\n\n{page_text}"
     else:
         files = text_extractor.collect_files(directory, max_files)
         if not files:
@@ -648,9 +648,9 @@ def _parse_with_retry(
             # снова возвращают тот же битый/длинный ответ.
             repair = (
                 STRICT_JSON_PREFIX
-                + "Исправь предыдущий ответ и верни только валидный JSON.\n"
-                + f"Ошибка: {exc}\n"
-                + f"Предыдущий ответ:\n{raw[:4000]}"
+                + "Fix the previous answer and return valid JSON only.\n"
+                + f"Error: {exc}\n"
+                + f"Previous answer:\n{raw[:4000]}"
             )
             try:
                 # json_mode выключаем принудительно: часть моделей

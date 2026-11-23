@@ -173,6 +173,7 @@ def init_db() -> None:
         _seed_settings(conn)
         _seed_templates(conn)
         _ensure_missing_templates(conn)
+        _migrate_prompts_to_english(conn)
 
 
 def reset_stale_jobs(message: str = "") -> int:
@@ -284,3 +285,51 @@ def _ensure_missing_templates(conn: sqlite3.Connection) -> None:
         "UPDATE settings SET default_templates_json = ? WHERE id = 1",
         (json.dumps(defaults, ensure_ascii=False),),
     )
+
+
+_RUSSIAN_PROMPT_MARKER = "Ты создаешь AI-слепок"
+
+
+def _has_cyrillic(text: str) -> bool:
+    return any("\u0400" <= ch <= "\u04ff" for ch in text or "")
+
+
+def _migrate_prompts_to_english(conn: sqlite3.Connection) -> None:
+    """Заменяет русские промпты шаблонов английскими.
+
+    Шаблоны, засеянные до перевода на английский, содержат русский system prompt
+    (маркер — первая строка старого BASE_SYSTEM_PROMPT). Такие шаблоны сбрасываются
+    на актуальные английские дефолты своего типа. Шаблоны с кириллицей в промптах
+    тоже заменяются, чтобы слепки создавались только на английском.
+    """
+    defaults = {t["snapshot_type"]: t for t in build_default_templates()}
+    rows = conn.execute("SELECT * FROM templates").fetchall()
+    ts = now_iso()
+    for row in rows:
+        tpl = defaults.get(row["snapshot_type"])
+        if tpl is None:
+            continue
+        is_legacy_default = _RUSSIAN_PROMPT_MARKER in (row["system_prompt"] or "")
+        has_russian = any(
+            _has_cyrillic(row[field] or "")
+            for field in ("system_prompt", "user_prompt", "chunk_user_prompt", "merge_user_prompt")
+        )
+        if not (is_legacy_default or has_russian):
+            continue
+        conn.execute(
+            """
+            UPDATE templates SET
+              system_prompt = ?, user_prompt = ?, chunk_user_prompt = ?,
+              merge_user_prompt = ?, description = ?, updated_at = ?
+            WHERE id = ?
+            """,
+            (
+                tpl["system_prompt"],
+                tpl["user_prompt"],
+                tpl["chunk_user_prompt"],
+                tpl["merge_user_prompt"],
+                tpl["description"],
+                ts,
+                row["id"],
+            ),
+        )
