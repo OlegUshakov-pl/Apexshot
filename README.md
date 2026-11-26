@@ -1,8 +1,4 @@
 ![home](./assets/home.png)
-![home2](./assets/home-2.png)
-![search](./assets/search.png)
-![settings](./assets/settings.png)
-![snap](./assets/snap.png)
 
 # ApexShot (ex AI-snapshot)
 
@@ -218,3 +214,9 @@ and never touch a real Ollama instance. Covered: end-to-end hybrid results,
 BM25-only degradation (`degraded: true`), RRF preference for documents found by
 both engines, index updates after snapshot creation/deletion, and the HTTP contract
 of `POST /api/search`.
+
+![apex](./assets/apex.png)
+![home2](./assets/home-2.png)
+![search](./assets/search.png)
+![settings](./assets/settings.png)
+![snap](./assets/snap.png)
